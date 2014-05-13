@@ -38,7 +38,7 @@ nogrid <- theme(panel.grid.major = element_blank(),
                 panel.grid.minor = element_blank(),
                 panel.background = element_blank(),
                 axis.line = element_line(colour = "black"),
-                legend.title=element_blank(),
+                legend.title=element_blank()
                 )
 
 poster.theme <- theme(legend.title=element_blank(),
@@ -89,13 +89,13 @@ rtplot
 
 # Save Plots
 psize <- 20
-# ggsave("figs/lat.tiff", latplot, height = psize, width = psize, units = "cm",
-#        dpi = 600)
-# ggsave("figs/amp.tiff", ampplot, height = psize, width = psize, units = "cm",
-#        dpi = 600)
-# ggsave("figs/fix.tiff", fixplot, height = psize, width = psize, units = "cm",
-#        dpi = 600)
-#ggsave("figs/rt.png",rtplot)
+ggsave("figs/lat.tiff", latplot, height = psize, width = psize, units = "cm",
+       dpi = 600)
+ggsave("figs/amp.tiff", ampplot, height = psize, width = psize, units = "cm",
+       dpi = 600)
+ggsave("figs/fix.tiff", fixplot, height = psize, width = psize, units = "cm",
+       dpi = 600)
+# ggsave("figs/rt.png",rtplot)
 
 # Classifier Plot ---------------------------------------------------------
 
@@ -118,8 +118,8 @@ cplot <- ggplot(cdat, aes(snum,acc))+
 # Display and Save
 cplot
 
-# ggsave("figs/classacc.tiff",cplot, height = psize, width = psize, units = "cm",
-#        dpi = 600)
+ggsave("figs/classacc.tiff",cplot, height = psize, width = psize, units = "cm",
+       dpi = 600)
 
 # Saccade Proportion Plot -------------------------------------------------
   

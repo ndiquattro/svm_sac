@@ -130,7 +130,7 @@ sdat <- subset(sub.mn, cond == "3_1_Distractor" | cond == "3_3_On1" |
     summary(fix.mod)
 
   # Post-hoc t-tests
-  slat.t <- with(sdat, pairwise.t.test(slat, cond, "none", paired=TRUE))
+  slat.t <- with(sdat, pairwise.t.test(slat, cond, "bon", paired=TRUE))
   amp.t <- with(sdat, pairwise.t.test(samp, cond, "bon", paired=TRUE))
   fix.t <- with(sdat, pairwise.t.test(fixdur, cond, "bon", paired=TRUE))
 
@@ -186,12 +186,12 @@ pvals <- list(stat_summary(fun.y=mean, geom="bar", position="dodge"),
 # Diagnostic Plot
 tnum.plot <- ggplot(sub.ln, aes(cond, slat, fill=onsets))+
                     scale_y_continuous("Mean Number of Trials", breaks=1:40)+
-                    pvals
+                    pvals + ptheme
 
 # Saccade Proportion plot
 spro.plot <- ggplot(num, aes(cond, props, fill=onsets))+
               scale_y_continuous("Proportion of Saccades", breaks=seq(0,1,.1))+
-              pvals
+              pvals + ptheme
 
 # 2nd saccades proportion plot
 pdat2 <- subset(num2, cond == "3_1_Target" | cond == "3_3_On2" |
@@ -205,10 +205,7 @@ slat.plot <- ggplot(plot.dat, aes(cond, slat, fill=fillon))+
                     ylab("Saccade Latency (ms)")+
                     coord_cartesian(ylim=c(170,290))+
                     annotate("text", 2, 270, label="*", size=24)+
-                    annotate("segment", x=1, xend=3, y=269, yend=269, size=1.5)+
-                    annotate("text", 3.4, 250, label="*", size=24)+
-                    annotate("segment", x=2.9, xend=3.9, y=249, yend=249,
-                             size=1.5)+        
+                    annotate("segment", x=1, xend=3, y=269, yend=269, size=1.5)+      
                     pvals
 
 amp.plot <- ggplot(plot.dat, aes(cond, samp, fill=fillon))+
