@@ -114,12 +114,6 @@ den2 <- aggregate(slat ~ on1 + on2 + sub, sac2, length)
 # Subset for Stats
 sdat <- subset(sub.mn, cond == "3_1_Distractor" | cond == "3_3_On1" |
                        cond == "2_1_Distractor" | cond == "2_2_On1")
-                      # Not used
-                      #  cond == "3_2_On1"
-                      # cond == "3_0_Sim" | cond == "3_0_Dsim" |
-                      #  | cond == "2_0_Distractor"
-                      # cond == "4_0_Dcol" | cond == "4_0_OpDcol" |
-                      # cond == "1_0_Distractor"
 
 # Anovas
   slat.mod <- aov(slat ~ cond + Error(sub/cond), sdat)
@@ -186,7 +180,8 @@ pvals <- list(stat_summary(fun.y=mean, geom="bar", position="dodge"),
 # Diagnostic Plot
 tnum.plot <- ggplot(sub.ln, aes(cond, slat, fill=onsets))+
                     scale_y_continuous("Mean Number of Trials", breaks=1:40)+
-                    pvals + ptheme
+                    geom_boxplot()+ ptheme
+                    #pvals
 
 # Saccade Proportion plot
 spro.plot <- ggplot(num, aes(cond, props, fill=onsets))+
@@ -235,11 +230,11 @@ amp.plot
 fix.plot
 
 kPsize <- 20
-ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="cm",
-       dpi = 600)
-ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize,
-       units = "cm",
-       dpi = 600)
-ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
-       units = "cm",
-       dpi = 600)
+# ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="cm",
+#        dpi = 600)
+# ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize,
+#        units = "cm",
+#        dpi = 600)
+# ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
+#        units = "cm",
+#        dpi = 600)
