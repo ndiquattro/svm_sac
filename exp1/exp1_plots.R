@@ -89,12 +89,12 @@ rtplot
 
 # Save Plots
 psize <- 20
-ggsave("figs/lat.tiff", latplot, height = psize, width = psize, units = "cm",
-       dpi = 600)
-ggsave("figs/amp.tiff", ampplot, height = psize, width = psize, units = "cm",
-       dpi = 600)
-ggsave("figs/fix.tiff", fixplot, height = psize, width = psize, units = "cm",
-       dpi = 600)
+# ggsave("figs/lat.tiff", latplot, height = psize, width = psize, units = "cm",
+#        dpi = 600)
+# ggsave("figs/amp.tiff", ampplot, height = psize, width = psize, units = "cm",
+#        dpi = 600)
+# ggsave("figs/fix.tiff", fixplot, height = psize, width = psize, units = "cm",
+#        dpi = 600)
 #ggsave("figs/rt.png",rtplot)
 
 # Classifier Plot ---------------------------------------------------------
@@ -117,8 +117,9 @@ cplot <- ggplot(cdat, aes(snum,acc))+
 
 # Display and Save
 cplot
-ggsave("figs/classacc.tiff",cplot, height = psize, width = psize, units = "cm",
-       dpi = 600)
+
+# ggsave("figs/classacc.tiff",cplot, height = psize, width = psize, units = "cm",
+#        dpi = 600)
 
 # Saccade Proportion Plot -------------------------------------------------
   
