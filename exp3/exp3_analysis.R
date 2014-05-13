@@ -207,7 +207,8 @@ slat.plot <- ggplot(plot.dat, aes(cond, slat, fill=fillon))+
                     annotate("text", 2, 270, label="*", size=24)+
                     annotate("segment", x=1, xend=3, y=269, yend=269, size=1.5)+
                     annotate("text", 3.4, 250, label="*", size=24)+
-                    annotate("segment", x=2.9, xend=3.9, y=249, yend=249, size=1.5)+        
+                    annotate("segment", x=2.9, xend=3.9, y=249, yend=249,
+                             size=1.5)+        
                     pvals
 
 amp.plot <- ggplot(plot.dat, aes(cond, samp, fill=fillon))+
