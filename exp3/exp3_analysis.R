@@ -229,12 +229,12 @@ slat.plot
 amp.plot
 fix.plot
 
-kPsize <- 20
-ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="cm",
-       dpi = 600)
-ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize,
-       units = "cm",
-       dpi = 600)
-ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
-       units = "cm",
-       dpi = 600)
+# kPsize <- 20
+# ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="cm",
+#        dpi = 600)
+# ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize,
+#        units = "cm",
+#        dpi = 600)
+# ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
+#        units = "cm",
+#        dpi = 600)
