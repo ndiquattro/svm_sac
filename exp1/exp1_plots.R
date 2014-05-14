@@ -1,5 +1,5 @@
 # Chart Maker for SVM Experiment 1
-# N. DiQuattro - Spring 2014
+# N. DiQuattro - Spring 2014 - Hi world!
 
 # Set-up ------------------------------------------------------------------
 
