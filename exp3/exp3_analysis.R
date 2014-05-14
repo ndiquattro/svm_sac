@@ -115,6 +115,21 @@ den2 <- aggregate(slat ~ on1 + on2 + sub, sac2, length)
 sdat <- subset(sub.mn, cond == "3_1_Distractor" | cond == "3_3_On1" |
                        cond == "2_1_Distractor" | cond == "2_2_On1")
 
+# Test for low tnum ##
+lowsub = subset(sub.ln, cond=="3_1_Distractor" & slat < 10)
+lowsubs = unique(lowsub$sub)
+
+sdat$lowt[ sdat$sub %in% lowsubs] = "Low"
+sdat$lowt[!sdat$sub %in% lowsubs] = "High"
+
+test.dat <- subset(sdat, cond=="3_1_Distractor")
+  t.test(slat ~ lowt, data=test.dat, var.equal=T)
+  t.test(samp ~ lowt, data=test.dat, var.equal=T)
+  t.test(fixdur ~ lowt, data=test.dat, var.equal=T)
+
+# Try out removing low subs from analysis
+#sdat <- subset(sdat, lowt=="High")
+
 # Anovas
   slat.mod <- aov(slat ~ cond + Error(sub/cond), sdat)
     summary(slat.mod)
@@ -238,3 +253,5 @@ fix.plot
 # ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
 #        units = "cm",
 #        dpi = 600)
+
+
