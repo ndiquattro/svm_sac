@@ -88,12 +88,12 @@ fixplot
 rtplot
 
 # Save Plots
-psize <- 20
-ggsave("figs/lat.tiff", latplot, height = psize, width = psize, units = "cm",
+psize <- 6
+ggsave("figs/lat_small.tiff", latplot, height = psize, width = psize, units = "in",
        dpi = 600)
-ggsave("figs/amp.tiff", ampplot, height = psize, width = psize, units = "cm",
+ggsave("figs/amp_small.tiff", ampplot, height = psize, width = psize, units = "in",
        dpi = 600)
-ggsave("figs/fix.tiff", fixplot, height = psize, width = psize, units = "cm",
+ggsave("figs/fix_small.tiff", fixplot, height = psize, width = psize, units = "in",
        dpi = 600)
 # ggsave("figs/rt.png",rtplot)
 
@@ -118,7 +118,7 @@ cplot <- ggplot(cdat, aes(snum,acc))+
 # Display and Save
 cplot
 
-ggsave("figs/classacc.tiff",cplot, height = 20, width = 17.5, units = "cm",
+ggsave("figs/classacc_small.tiff",cplot, height = 8, width = 8, units = "in",
        dpi = 600)
 
 # Saccade Proportion Plot -------------------------------------------------

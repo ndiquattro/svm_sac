@@ -21,6 +21,7 @@ if (Sys.info()['sysname'] == "Darwin"){
 
 # Load Libraries
 library(ggplot2)
+#library(car)
 
 # Load Data ---------------------------------------------------------------
 
@@ -32,16 +33,16 @@ dat <- read.csv("svm_5_dat.txt", header = TRUE, na.strings = c(".", "NA"),
                               "pendia", "pstia"))
 
 # Clean up data
+dat$condmm <- NA
 dat <- within(dat, {
-#               endia = substr(endia, 1, nchar(endia)-1)  # Remove extra space 
-#               stia  = substr(stia, 1, nchar(stia)-1)
-#               pendia = substr(pendia, 1, nchar(pendia)-1)
-#               pstia  = substr(pstia, 1, nchar(pstia)-1)
               # Set no target trials to correct if no response
               cor[on1 > 1 & on2 > 1 & rt == 0] = 1
               cor[on1 > 1 & on2 == 0 & rt == 0] = 1
-              soa[soa==1] = "-68ms"  # Make the soa vector informative
+              # Make SOA vector labeled
+              soa[soa==1] = "-68ms"
               soa[soa==0] = "0ms"
+              # Make condition vector
+              condmm = paste(on1, on2, endia, sep="_")
             })
 
 # Collapse across some conditions
@@ -112,8 +113,10 @@ den2 <- aggregate(slat ~ on1 + on2 + sub, sac2, length)
 # Stats -------------------------------------------------------------------
   
 # Subset for Stats
-sdat <- subset(sub.mn, cond == "3_1_Distractor" | cond == "3_3_On1" |
-                       cond == "2_1_Distractor" | cond == "2_2_On1")
+coi <- c("2_1_Distractor", "2_2_On1", "3_1_Distractor", "3_3_On1")
+sdat <- subset(sub.mn, cond %in% coi)
+
+#sdat$cond <- factor(sdat$cond)
 
 # Test for low tnum ##
 lowsub = subset(sub.ln, cond=="3_1_Distractor" & slat < 10)
@@ -143,6 +146,26 @@ test.dat <- subset(sdat, cond=="3_1_Distractor")
   amp.t <- with(sdat, pairwise.t.test(samp, cond, "bon", paired=TRUE))
   fix.t <- with(sdat, pairwise.t.test(fixdur, cond, "bon", paired=TRUE))
 
+# Mixed Models ------------------------------------------------------------
+  library(lme4)
+  library(lmerTest)
+
+  # Get data
+  mixed.dat <- subset(fsac, condmm %in% coi)
+    mixed.dat$condmm <- factor(mixed.dat$condmm)
+      mixed.dat$condmm <-relevel(mixed.dat$condmm, "3_3_On1")
+
+  # Fit models
+  slat.mm <- lmer(slat ~ condmm+ (condmm|sub), mixed.dat)
+    summary(slat.mm)
+
+  amp.mm <- lmer(samp ~ condmm + (condmm|sub), mixed.dat)
+    summary(amp.mm)
+
+  fixdur.mm <- lmer(fixdur ~ condmm + (condmm|sub), mixed.dat)
+    summary(fixdur.mm)
+
+
 # Plot it! ----------------------------------------------------------------
 
 # Which data for plotting?
@@ -160,14 +183,14 @@ plot.dat <- sdat
 
   # Try something tricky to get x labels to be right
   plot.dat <- within(plot.dat, {
-    cond[cond=="2_1_Distractor"] = "Target"
-    cond[cond=="2_2_On1"] = "Similar"
-    cond[cond=="3_1_Distractor"] = "Target "
-    cond[cond=="3_3_On1"] = "Dissimilar"
-    cond[cond=="1_0_Distractor"] = "Target  "
-    cond[cond=="4_0_Dcol"] = "Dissimilar "
-    cond = factor(cond, levels=c("Target", "Similar", "Target ", "Dissimilar",
-                                 "Target  ", "Dissimilar "))
+    cond[cond=="2_1_Distractor"] = "Tar"
+    cond[cond=="2_2_On1"] = "Sim"
+    cond[cond=="3_1_Distractor"] = "Tar "
+    cond[cond=="3_3_On1"] = "Dsim"
+    cond[cond=="1_0_Distractor"] = "Tar  "
+    cond[cond=="4_0_Dcol"] = "Dsim "
+    cond = factor(cond, levels=c("Tar", "Sim", "Tar ", "Dsim",
+                                 "Tar  ", "Dsim "))
   })
 
 # Shared Pvals
@@ -175,8 +198,8 @@ ptheme <- theme(axis.text.x = element_text(angle=-45, hjust=0, size=12,
                                            color="black"),
                 axis.title.x = element_blank())
 
-poster.theme <- theme(legend.position = c(0, 1),
-                      legend.justification = c(0, 1),
+poster.theme <- theme(legend.position = c(1, 1),
+                      legend.justification = c(1, 1),
                       legend.text = element_text(size = 18),
                       axis.text = element_text(size = 24),
                       axis.title = element_text(size = 32),
@@ -244,6 +267,19 @@ slat.plot
 amp.plot
 fix.plot
 
+<<<<<<< HEAD
+kPsize <- 6
+ggsave("figs/lat_small.tiff", slat.plot, height=kPsize, width=kPsize, units="in",
+       dpi = 600)
+ggsave("figs/amp_small.tiff", amp.plot, height = kPsize, width = kPsize,
+       units = "in",
+       dpi = 600)
+ggsave("figs/fix_small.tiff", fix.plot, height = kPsize, width = kPsize,
+       units = "in",
+       dpi = 600)
+
+
+=======
 # kPsize <- 20
 # ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="cm",
 #        dpi = 600)
@@ -253,5 +289,4 @@ fix.plot
 # ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
 #        units = "cm",
 #        dpi = 600)
-
-
+>>>>>>> 0ad020d26e468bd2e6478a2c4deab5d4820255b4
