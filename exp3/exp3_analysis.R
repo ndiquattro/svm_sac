@@ -21,6 +21,7 @@ if (Sys.info()['sysname'] == "Darwin"){
 
 # Load Libraries
 library(ggplot2)
+#library(car)
 
 # Load Data ---------------------------------------------------------------
 
@@ -32,16 +33,16 @@ dat <- read.csv("svm_5_dat.txt", header = TRUE, na.strings = c(".", "NA"),
                               "pendia", "pstia"))
 
 # Clean up data
+dat$condmm <- NA
 dat <- within(dat, {
-#               endia = substr(endia, 1, nchar(endia)-1)  # Remove extra space 
-#               stia  = substr(stia, 1, nchar(stia)-1)
-#               pendia = substr(pendia, 1, nchar(pendia)-1)
-#               pstia  = substr(pstia, 1, nchar(pstia)-1)
               # Set no target trials to correct if no response
               cor[on1 > 1 & on2 > 1 & rt == 0] = 1
               cor[on1 > 1 & on2 == 0 & rt == 0] = 1
-              soa[soa==1] = "-68ms"  # Make the soa vector informative
+              # Make SOA vector labeled
+              soa[soa==1] = "-68ms"
               soa[soa==0] = "0ms"
+              # Make condition vector
+              condmm = paste(on1, on2, endia, sep="_")
             })
 
 # Collapse across some conditions
@@ -112,8 +113,10 @@ den2 <- aggregate(slat ~ on1 + on2 + sub, sac2, length)
 # Stats -------------------------------------------------------------------
   
 # Subset for Stats
-sdat <- subset(sub.mn, cond == "3_1_Distractor" | cond == "3_3_On1" |
-                       cond == "2_1_Distractor" | cond == "2_2_On1")
+coi <- c("2_1_Distractor", "2_2_On1", "3_1_Distractor", "3_3_On1")
+sdat <- subset(sub.mn, cond %in% coi)
+
+#sdat$cond <- factor(sdat$cond)
 
 # Test for low tnum ##
 lowsub = subset(sub.ln, cond=="3_1_Distractor" & slat < 10)
@@ -142,6 +145,24 @@ test.dat <- subset(sdat, cond=="3_1_Distractor")
   slat.t <- with(sdat, pairwise.t.test(slat, cond, "bon", paired=TRUE))
   amp.t <- with(sdat, pairwise.t.test(samp, cond, "bon", paired=TRUE))
   fix.t <- with(sdat, pairwise.t.test(fixdur, cond, "bon", paired=TRUE))
+
+# Mixed Models ------------------------------------------------------------
+  library(lme4)
+
+  # Get data
+  mixed.dat <- subset(fsac, condmm %in% coi)
+    mixed.dat$on1 <- factor(mixed.dat$on1, levels=c("3", "2"))
+    mixed.dat$on2 <- factor(mixed.dat$on2, levels=c("3", "2", "1"))
+    mixed.dat$condmm <- factor(mixed.dat$condmm)
+      mixed.dat$condmm <-relevel(mixed.dat$condmm, "3_3_On1")
+
+  # Fit models
+  slat.mm <- lmer(slat ~ on1 + on2 + (on1+on2|sub), mixed.dat)
+    summary(slat.mm)
+
+  fixdur.mm <- lmer(fixdur ~ condmm + (condmm|sub), mixed.dat)
+    summary(fixdur.mm)
+
 
 # Plot it! ----------------------------------------------------------------
 
@@ -253,5 +274,3 @@ fix.plot
 # ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
 #        units = "cm",
 #        dpi = 600)
-
-
