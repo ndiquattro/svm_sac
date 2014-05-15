@@ -148,17 +148,19 @@ test.dat <- subset(sdat, cond=="3_1_Distractor")
 
 # Mixed Models ------------------------------------------------------------
   library(lme4)
+  library(lmerTest)
 
   # Get data
   mixed.dat <- subset(fsac, condmm %in% coi)
-    mixed.dat$on1 <- factor(mixed.dat$on1, levels=c("3", "2"))
-    mixed.dat$on2 <- factor(mixed.dat$on2, levels=c("3", "2", "1"))
     mixed.dat$condmm <- factor(mixed.dat$condmm)
       mixed.dat$condmm <-relevel(mixed.dat$condmm, "3_3_On1")
 
   # Fit models
-  slat.mm <- lmer(slat ~ on1 + on2 + (on1+on2|sub), mixed.dat)
+  slat.mm <- lmer(slat ~ condmm+ (condmm|sub), mixed.dat)
     summary(slat.mm)
+
+  amp.mm <- lmer(samp ~ condmm + (condmm|sub), mixed.dat)
+    summary(amp.mm)
 
   fixdur.mm <- lmer(fixdur ~ condmm + (condmm|sub), mixed.dat)
     summary(fixdur.mm)
