@@ -149,13 +149,18 @@ lat.plot
 amp.plot
 fix.plot
 
-kPsize <- 20
-ggsave("figs/lat.tiff", lat.plot, height = kPsize, width = kPsize, units = "cm",
-       dpi = 600)
-ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize, units = "cm",
-       dpi = 600)
-ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize, units = "cm",
-       dpi = 600)
+# Try out a desnity plot
+lat.den <- ggplot(sdf, aes(x=rt, fill=dtype, alpha=.6))+
+                  geom_density()+
+                  facet_wrap(~soa)
+
+# kPsize <- 20
+# ggsave("figs/lat.tiff", lat.plot, height = kPsize, width = kPsize, units = "cm",
+#        dpi = 600)
+# ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize, units = "cm",
+#        dpi = 600)
+# ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize, units = "cm",
+#        dpi = 600)
 
 # Fit mixed models --------------------------------------------------------
 
