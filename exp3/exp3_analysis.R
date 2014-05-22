@@ -182,14 +182,14 @@ plot.dat <- sdat
 
   # Try something tricky to get x labels to be right
   plot.dat <- within(plot.dat, {
-    cond[cond=="2_1_Distractor"] = "Target"
-    cond[cond=="2_2_On1"] = "Similar"
-    cond[cond=="3_1_Distractor"] = "Target "
-    cond[cond=="3_3_On1"] = "Dissimilar"
-    cond[cond=="1_0_Distractor"] = "Target  "
-    cond[cond=="4_0_Dcol"] = "Dissimilar "
-    cond = factor(cond, levels=c("Target", "Similar", "Target ", "Dissimilar",
-                                 "Target  ", "Dissimilar "))
+    cond[cond=="2_1_Distractor"] = "Tar"
+    cond[cond=="2_2_On1"] = "Sim"
+    cond[cond=="3_1_Distractor"] = "Tar "
+    cond[cond=="3_3_On1"] = "Dsim"
+    cond[cond=="1_0_Distractor"] = "Tar  "
+    cond[cond=="4_0_Dcol"] = "Dsim "
+    cond = factor(cond, levels=c("Tar", "Sim", "Tar ", "Dsim",
+                                 "Tar  ", "Dsim "))
   })
 
 # Shared Pvals
@@ -197,8 +197,8 @@ ptheme <- theme(axis.text.x = element_text(angle=-45, hjust=0, size=12,
                                            color="black"),
                 axis.title.x = element_blank())
 
-poster.theme <- theme(legend.position = c(0, 1),
-                      legend.justification = c(0, 1),
+poster.theme <- theme(legend.position = c(1, 1),
+                      legend.justification = c(1, 1),
                       legend.text = element_text(size = 18),
                       axis.text = element_text(size = 24),
                       axis.title = element_text(size = 32),
@@ -266,11 +266,16 @@ slat.plot
 amp.plot
 fix.plot
 
+<<<<<<< HEAD
 # Try out density plot!
 den.dat <- subset(fsac, soa == "0ms" & on1 <3)
 (rt.den <- ggplot(den.dat, aes(x=fixdur, fill=endia, alpha=.6)) + geom_density()+
                   facet_wrap(~on1))
 
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> FETCH_HEAD
 # kPsize <- 20
 # ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="cm",
 #        dpi = 600)
@@ -280,3 +285,7 @@ den.dat <- subset(fsac, soa == "0ms" & on1 <3)
 # ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
 #        units = "cm",
 #        dpi = 600)
+<<<<<<< HEAD
+>>>>>>> 0ad020d26e468bd2e6478a2c4deab5d4820255b4
+=======
+>>>>>>> 0ad020d26e468bd2e6478a2c4deab5d4820255b4

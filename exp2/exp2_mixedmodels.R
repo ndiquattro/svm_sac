@@ -126,7 +126,7 @@ gdat <- aggregate(cbind(slat,samp,fixdur) ~ dtype+soa, FUN=mean, sdat)
 
   # Plot values
   pvals <- list(scale_x_continuous(labels=c("-100","-68","-33","0"),
-                                   name="Distractor -> Target SOA (ms)"),
+                                   name="Distractor -> Target SOA"),
                 stat_summary(fun.y=mean, geom="line", size = 2),
                 stat_summary(fun.data = mean_cl_normal, geom = "pointrange",
                              size=2),
@@ -149,6 +149,7 @@ lat.plot
 amp.plot
 fix.plot
 
+<<<<<<< HEAD
 # Try out a desnity plot
 lat.den <- ggplot(sdf, aes(x=rt, fill=dtype, alpha=.6))+
                   geom_density()+
@@ -161,6 +162,15 @@ lat.den <- ggplot(sdf, aes(x=rt, fill=dtype, alpha=.6))+
 #        dpi = 600)
 # ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize, units = "cm",
 #        dpi = 600)
+=======
+kPsize <- 6
+ggsave("figs/lat_small.tiff", lat.plot, height = kPsize, width = kPsize, units = "in",
+       dpi = 600)
+ggsave("figs/amp_small.tiff", amp.plot, height = kPsize, width = kPsize, units = "in",
+       dpi = 600)
+ggsave("figs/fix_small.tiff", fix.plot, height = kPsize, width = kPsize, units = "in",
+       dpi = 600)
+>>>>>>> FETCH_HEAD
 
 # Fit mixed models --------------------------------------------------------
 
