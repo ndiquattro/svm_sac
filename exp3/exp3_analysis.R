@@ -267,8 +267,7 @@ slat.plot
 amp.plot
 fix.plot
 
-<<<<<<< HEAD
-=======
+
 # kPsize <- 20
 # ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="cm",
 #        dpi = 600)
@@ -278,7 +277,3 @@ fix.plot
 # ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
 #        units = "cm",
 #        dpi = 600)
-<<<<<<< HEAD
->>>>>>> 0ad020d26e468bd2e6478a2c4deab5d4820255b4
-=======
->>>>>>> 0ad020d26e468bd2e6478a2c4deab5d4820255b4
