@@ -21,7 +21,6 @@ if (Sys.info()['sysname'] == "Darwin"){
 
 # Load Libraries
 library(ggplot2)
-#library(car)
 
 # Load Data ---------------------------------------------------------------
 
@@ -267,6 +266,11 @@ slat.plot
 amp.plot
 fix.plot
 
+
+# Try out density plot!
+den.dat <- subset(fsac, soa == "0ms" & on1 <3)
+(rt.den <- ggplot(den.dat, aes(x=fixdur, fill=endia, alpha=.6)) + geom_density()+
+                  facet_wrap(~on1))
 
 # kPsize <- 20
 # ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="cm",

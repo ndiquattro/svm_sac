@@ -15,6 +15,7 @@ if (Sys.info()['sysname'] == "Darwin") {
 
 # Load Libraries
 library(ggplot2)
+library(dplyr)
 
 # Mean DV Plots --------------------------------------------------------------
 
@@ -29,6 +30,14 @@ sdf <- read.csv("svm1_1sac_dat.txt", header = T)
     sdest[endia==3] = "Distractor"
     sdest[endia==2] = "Target"
   }) 
+
+# Correlation test
+corels <- sdf %.%
+            group_by(dtype, sdest, sub) %.%
+            summarise(
+              cor1 = cor(slat, samp, use = "complete"),
+              cor2 = cor(slat, fixdur, use = "complete"),
+              cor3 = cor(samp, fixdur, use = "complete"))
 
 # Find Subject Level means of DVs
 mdat <- aggregate(cbind(slat, samp, fixdur, rt) ~ dtype + sdest, mean, data=sdf)
