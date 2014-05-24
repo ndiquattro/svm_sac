@@ -13,19 +13,20 @@
 rm(list = ls())
 
 # Set working directory
-if (Sys.info()['sysname'] == "Darwin"){
+if (Sys.info()['sysname'] == "Darwin") {
   setwd("~/Dropbox/analysis/sac_svm/Rscripts/exp5")
-}else{
+} else {
   setwd('C:\\Dropbox\\analysis\\sac_svm\\Rscripts\\exp5')
 }
 
 # Load Libraries
 library(ggplot2)
+library(dplyr)
 
 # Load Data ---------------------------------------------------------------
 
 dat <- read.csv("svm_5_dat.txt", header = TRUE, na.strings = c(".", "NA"),
-                stringsAsFactors = FALSE, strip.white = T, 
+                stringsAsFactors = FALSE, strip.white = TRUE, 
                 col.names = c("sub", "tnum", "pupil", "on1", "on2", "soa",
                               "tloc", "dcol", "tcol", "cor", "rt", "sidx",
                               "endia", "stia", "samp", "slat", "fixdur",
@@ -96,6 +97,16 @@ den <- aggregate(slat ~ on1 + on2 + sub, fsac, length)
                                     den$sub==num[a, "sub"], "slat"]
   }
 
+# Get sub level means with dplyr
+sub.lvl <- fsac %.%
+            group_by(on1, on2, endia, soa, sub) %.%
+            summarise(
+              slat   = mean(slat),
+              samp   = mean(samp),
+              fixdur = mean(fixdur),
+              tnum   = n()) %.%
+            mutate(cond = paste(on1,on2,endia, sep="_"))
+
 # Find 2nd saccade proportions
 num2 <- aggregate(slat ~ on1 + on2 + endia + sub + soa, sac2, length)
   num2$cond <- paste(num2$on1, num2$on2, num2$endia, sep="_")
@@ -114,10 +125,6 @@ den2 <- aggregate(slat ~ on1 + on2 + sub, sac2, length)
 # Subset for Stats
 coi <- c("2_2_On1","3_3_On1")
 sdat <- subset(sub.mn, cond %in% coi)
-
-# Try combining trials to either onset
-sdat$cond[sdat$cond==""]
-
 
 # Test for low tnum ##
 lowsub = subset(sub.ln, cond=="3_1_Distractor" & slat < 10)
@@ -276,8 +283,13 @@ fix.plot
 
 # Try out density plot!
 den.dat <- subset(fsac, soa == "0ms" & on1 <3)
-(rt.den <- ggplot(den.dat, aes(x=fixdur, fill=endia, alpha=.6)) + geom_density()+
+(rt.den <- ggplot(den.dat, aes(x=fixdur, fill=endia, alpha=.6)) +geom_density()+
                   facet_wrap(~on1))
+
+# Indivdual differences plot
+ggplot(subset(sub.lvl, cond=="2_2_On1"), aes(tnum, slat))+
+  geom_point()+
+  geom_smooth(method=lm)
 
 # kPsize <- 20
 # ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="cm",
