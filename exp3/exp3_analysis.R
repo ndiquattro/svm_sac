@@ -112,10 +112,12 @@ den2 <- aggregate(slat ~ on1 + on2 + sub, sac2, length)
 # Stats -------------------------------------------------------------------
   
 # Subset for Stats
-coi <- c("2_1_Distractor", "2_2_On1", "3_1_Distractor", "3_3_On1")
+coi <- c("2_2_On1","3_3_On1")
 sdat <- subset(sub.mn, cond %in% coi)
 
-#sdat$cond <- factor(sdat$cond)
+# Try combining trials to either onset
+sdat$cond[sdat$cond==""]
+
 
 # Test for low tnum ##
 lowsub = subset(sub.ln, cond=="3_1_Distractor" & slat < 10)
@@ -131,6 +133,11 @@ test.dat <- subset(sdat, cond=="3_1_Distractor")
 
 # Try out removing low subs from analysis
 #sdat <- subset(sdat, lowt=="High")
+
+# Test for difference between Onset for 2_2 and 3_3
+ondiff <- subset(sdat, (cond=="3_3_On1" | cond=="3_3_On2") & sub != "10_vv" )
+  t.test(samp ~ endia, data=ondiff, paired=TRUE)
+
 
 # Anovas
   slat.mod <- aov(slat ~ cond + Error(sub/cond), sdat)
@@ -240,7 +247,7 @@ slat.plot <- ggplot(plot.dat, aes(cond, slat, fill=fillon))+
                     annotate("segment", x=1, xend=3, y=269, yend=269, size=1.5)+      
                     pvals
 
-amp.plot <- ggplot(plot.dat, aes(cond, samp, fill=fillon))+
+amp.plot <- ggplot(plot.dat, aes(cond, samp))+
                   ylab("Saccade Amplitude (deg)")+
                   coord_cartesian(ylim=c(3, 5.1))+
                   pvals+
@@ -249,7 +256,7 @@ amp.plot <- ggplot(plot.dat, aes(cond, samp, fill=fillon))+
                            y=c(4.9, 4.9, 4.6), yend=c(4.9, 4.6, 4.6), size=1.5)+      
                   annotate("text", 2.5, 4.95, label="*", size=24)
 
-fix.plot  <- ggplot(plot.dat, aes(cond, fixdur, fill=fillon))+
+fix.plot  <- ggplot(plot.dat, aes(cond, fixdur))+
                     ylab("Fixation Duration (ms)")+
                     pvals+
                     theme(legend.position = c(-1,-1))+
