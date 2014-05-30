@@ -25,22 +25,25 @@ sdf <- read.csv("svm1_1sac_dat.txt", header = T)
   sdf$dtype <- NA
   sdf$sdest <- NA
   sdf <- within(sdf,{
-    dtype[ttype==1] = "Dissimilar"
-    dtype[ttype==2] = "Similiar"
+    dtype[ttype==1] = "Neutral"
+    dtype[ttype==2] = "Similar"
+    dtype[ttype==3] = "Salient"
     sdest[endia==3] = "Distractor"
     sdest[endia==2] = "Target"
   }) 
 
-# Correlation test
-corels <- sdf %.%
-            group_by(dtype, sdest, sub) %.%
-            summarise(
-              cor1 = cor(slat, samp, use = "complete"),
-              cor2 = cor(slat, fixdur, use = "complete"),
-              cor3 = cor(samp, fixdur, use = "complete"))
+acc.dat <- read.csv("svm1_acc_dat.txt", header = TRUE)
 
-# Find Subject Level means of DVs
-mdat <- aggregate(cbind(slat, samp, fixdur, rt) ~ dtype + sdest, mean, data=sdf)
+sdf <- left_join(sdf, acc.dat, by=c("sub", "ttype", "endia"))
+
+# Paper stats -------------------------------------------------------------
+
+# Dissimilar t-tests
+t.test(rt ~ dtype, sdf, dtype!="Similar"&endia==3&sub!="10_tn", paired=TRUE)
+t.test(cor.y ~ dtype, sdf, dtype!="Similar"&endia==3&sub!="10_tn", paired=TRUE)
+
+# Plot --------------------------------------------------------------------
+
 
 # Set-up shared plot theme
 nogrid <- theme(panel.grid.major = element_blank(),
