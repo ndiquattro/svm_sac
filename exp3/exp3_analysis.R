@@ -287,7 +287,7 @@ den.dat <- subset(fsac, soa == "0ms" & on1 <3)
                   facet_wrap(~on1))
 
 # Indivdual differences plot
-ggplot(subset(sub.lvl, cond=="2_2_On1"), aes(tnum, slat))+
+ggplot(subset(sub.lvl, cond=="2_1_Distractor"), aes(tnum, samp))+
   geom_point()+
   geom_smooth(method=lm)
 
