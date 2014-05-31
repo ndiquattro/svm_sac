@@ -39,8 +39,12 @@ sdf <- left_join(sdf, acc.dat, by=c("sub", "ttype", "endia"))
 # Paper stats -------------------------------------------------------------
 
 # Dissimilar t-tests
-t.test(rt ~ dtype, sdf, dtype!="Similar"&endia==3&sub!="10_tn", paired=TRUE)
-t.test(cor.y ~ dtype, sdf, dtype!="Similar"&endia==3&sub!="10_tn", paired=TRUE)
+# t.test(rt ~ dtype, sdf, dtype!="Similar"&endia==3&sub!="10_tn", paired=TRUE)
+# t.test(cor.y ~ dtype, sdf, dtype!="Similar"&endia==3&sub!="10_tn", paired=TRUE)
+
+# Behavoir tests
+t.test(rt ~ dtype, sdf, endia==3, paired=TRUE)
+t.test(cor.y ~ dtype, sdf, endia==3, paired=TRUE)
 
 # Plot --------------------------------------------------------------------
 
