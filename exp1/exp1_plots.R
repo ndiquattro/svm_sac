@@ -117,7 +117,15 @@ ggsave("figs/fix_small.tiff", fixplot, height = psize, width = psize, units = "i
 
 # Load data
 cdat <- read.csv("svm1_svmc_dat.txt", header=T)
-meana <- data.frame(macc=mean(cdat$acc))  # Find mean
+
+# Find means
+cl.mn <- summarise(cdat,
+            macc = mean(acc),
+            sacc = sd(acc)
+            )
+
+# Compare subject means to chance level
+wt <- wilcox.test(cdat$acc, mu=.5, exact=TRUE)
 
 # Make plot
 cplot <- ggplot(cdat, aes(snum,acc))+
@@ -134,8 +142,8 @@ cplot <- ggplot(cdat, aes(snum,acc))+
 # Display and Save
 cplot
 
-ggsave("figs/classacc_small.tiff",cplot, height = 8, width = 8, units = "in",
-       dpi = 600)
+# ggsave("figs/classacc_small.tiff",cplot, height = 8, width = 8, units = "in",
+#        dpi = 600)
 
 # Saccade Proportion Plot -------------------------------------------------
   
