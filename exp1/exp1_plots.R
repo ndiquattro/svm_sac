@@ -126,6 +126,11 @@ cl.mn <- summarise(cdat,
 
 # Compare subject means to chance level
 wt <- wilcox.test(cdat$acc, mu=.5, exact=TRUE)
+  wt.z <- qnorm(wt$p.value/2)
+
+# Check z value
+library(coin)
+wt2 <- wilcoxsign_test(cdat$acc)
 
 # Make plot
 cplot <- ggplot(cdat, aes(snum,acc))+
