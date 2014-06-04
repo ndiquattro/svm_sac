@@ -89,7 +89,7 @@ sdf <- read.csv("svm3_1sac_dat.txt", header = T)
 
 # Define factors as factors and center SOA to -103ms
 sdf <- within(sdf,{
-              dtype = factor(dtype,levels=c("Dissimilar","Similar"))
+              dtype = factor(dtype, levels=c("Dissimilar","Similar"))
               sub = factor(sub)
               soa = soa - 1
 })
@@ -149,7 +149,6 @@ lat.plot
 amp.plot
 fix.plot
 
-<<<<<<< HEAD
 # Try out a desnity plot
 lat.den <- ggplot(sdf, aes(x=rt, fill=dtype, alpha=.6))+
                   geom_density()+
@@ -162,15 +161,15 @@ lat.den <- ggplot(sdf, aes(x=rt, fill=dtype, alpha=.6))+
 #        dpi = 600)
 # ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize, units = "cm",
 #        dpi = 600)
-=======
-kPsize <- 6
-ggsave("figs/lat_small.tiff", lat.plot, height = kPsize, width = kPsize, units = "in",
-       dpi = 600)
-ggsave("figs/amp_small.tiff", amp.plot, height = kPsize, width = kPsize, units = "in",
-       dpi = 600)
-ggsave("figs/fix_small.tiff", fix.plot, height = kPsize, width = kPsize, units = "in",
-       dpi = 600)
->>>>>>> FETCH_HEAD
+
+# kPsize <- 6
+# ggsave("figs/lat_small.tiff", lat.plot, height = kPsize, width = kPsize, units = "in",
+#        dpi = 600)
+# ggsave("figs/amp_small.tiff", amp.plot, height = kPsize, width = kPsize, units = "in",
+#        dpi = 600)
+# ggsave("figs/fix_small.tiff", fix.plot, height = kPsize, width = kPsize, units = "in",
+#        dpi = 600)
+
 
 # Fit mixed models --------------------------------------------------------
 
@@ -178,14 +177,14 @@ ggsave("figs/fix_small.tiff", fix.plot, height = kPsize, width = kPsize, units =
 iters <- lmerControl(optCtrl=list(maxfun=1000000))
 
 # Latency Models
-slat.mod <- lmer(slat ~ dtype*soa + (dtype*soa|sub), sdf, control=iters)
+slat.mod <- lmer(log(slat) ~ dtype*soa + (dtype*soa|sub), sdf, control=iters)
   slat.sum <- summary(slat.mod)
 
 # Amplitude Models
-amp.mod <- lmer(samp ~ dtype*soa + (dtype*soa|sub), sdf, control=iters)
+amp.mod <- lmer(log(samp) ~ dtype*soa + (dtype*soa|sub), sdf, control=iters)
   amp.sum <- summary(amp.mod)
 #ampnull <- lmer(samp ~ 1 + (dtype*soa|sub), sdf, control=iters)  # Null model
 
 # Fixation Duration model
-fix.mod <- lmer(fixdur ~ dtype*soa + (dtype*soa|sub), sdf, control=iters)
+fix.mod <- lmer(log(fixdur) ~ dtype*soa + (dtype*soa|sub), sdf, control=iters)
   fix.sum <- summary(fix.mod)
