@@ -159,10 +159,21 @@ spd <- read.csv("svm1_prop_dat.txt", header=T)
   spd$sdest <- NA
   spd <- within(spd,{
     dtype[ttype==1] = "Dissimilar"
-    dtype[ttype==2] = "Similiar"
+    dtype[ttype==2] = "Similar"
     sdest[endia==3] = "Distractor"
     sdest[endia==2] = "Target"
   })
+
+# Find group means
+sp.mn <- spd %>%
+          group_by(ttype, endia) %>%
+          summarise(
+            props = mean(props))
+
+# Stats
+spt  <- t.test(props ~ dtype, spd, endia==3, paired = TRUE)
+dist <- t.test(spd$props[spd$endia==3&spd$dtype=="Dissimilar"])
+simt <- t.test(spd$props[spd$endia==3&spd$dtype=="Similar"])
 
 # Make Plot
 prplot <- ggplot(spd, aes(sdest, props, fill=dtype))+
