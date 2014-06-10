@@ -123,27 +123,27 @@ den2 <- aggregate(slat ~ on1 + on2 + sub, sac2, length)
 # Stats -------------------------------------------------------------------
   
 # Subset for Stats
-coi <- c("2_2_On1","3_3_On1")
+coi <- c("2_1_Distractor", "3_1_Distractor", "3_3_On1")
 sdat <- subset(sub.mn, cond %in% coi)
 
-# Test for low tnum ##
-lowsub = subset(sub.ln, cond=="3_1_Distractor" & slat < 10)
-lowsubs = unique(lowsub$sub)
-
-sdat$lowt[ sdat$sub %in% lowsubs] = "Low"
-sdat$lowt[!sdat$sub %in% lowsubs] = "High"
-
-test.dat <- subset(sdat, cond=="3_1_Distractor")
-  t.test(slat ~ lowt, data=test.dat, var.equal=T)
-  t.test(samp ~ lowt, data=test.dat, var.equal=T)
-  t.test(fixdur ~ lowt, data=test.dat, var.equal=T)
-
-# Try out removing low subs from analysis
-#sdat <- subset(sdat, lowt=="High")
-
-# Test for difference between Onset for 2_2 and 3_3
-ondiff <- subset(sdat, (cond=="3_3_On1" | cond=="3_3_On2") & sub != "10_vv" )
-  t.test(samp ~ endia, data=ondiff, paired=TRUE)
+# # Test for low tnum ##
+# lowsub = subset(sub.ln, cond=="3_1_Distractor" & slat < 10)
+# lowsubs = unique(lowsub$sub)
+# 
+# sdat$lowt[ sdat$sub %in% lowsubs] = "Low"
+# sdat$lowt[!sdat$sub %in% lowsubs] = "High"
+# 
+# test.dat <- subset(sdat, cond=="3_1_Distractor")
+#   t.test(slat ~ lowt, data=test.dat, var.equal=T)
+#   t.test(samp ~ lowt, data=test.dat, var.equal=T)
+#   t.test(fixdur ~ lowt, data=test.dat, var.equal=T)
+# 
+# # Try out removing low subs from analysis
+# #sdat <- subset(sdat, lowt=="High")
+# 
+# # Test for difference between Onset for 2_2 and 3_3
+# ondiff <- subset(sdat, (cond=="3_3_On1" | cond=="3_3_On2") & sub != "10_vv" )
+#   t.test(samp ~ endia, data=ondiff, paired=TRUE)
 
 
 # Anovas
@@ -183,28 +183,28 @@ ondiff <- subset(sdat, (cond=="3_3_On1" | cond=="3_3_On2") & sub != "10_vv" )
 
 # Which data for plotting?
 plot.dat <- sdat
-  # Make vector for plotting based on Sac destination
-  plot.dat$fillon <- paste(plot.dat$on1)
-    plot.dat$fillon[plot.dat$fillon=="4"] = "3"
-    plot.dat$fillon[plot.dat$fillon=="3" & plot.dat$endia=="Sim"] = "2"
-    plot.dat$fillon[plot.dat$fillon=="2" & 
-                    plot.dat$on2 == 0 &
-                    plot.dat$endia=="Distractor"] = "3"
-    plot.dat$fillon[plot.dat$fillon=="1"] = "2"
-  # Make factor to so we can define level order
-  plot.dat$fillon = factor(plot.dat$fillon, levels=c("3", "2"))
-
-  # Try something tricky to get x labels to be right
-  plot.dat <- within(plot.dat, {
-    cond[cond=="2_1_Distractor"] = "Tar"
-    cond[cond=="2_2_On1"] = "Sim"
-    cond[cond=="3_1_Distractor"] = "Tar "
-    cond[cond=="3_3_On1"] = "Dsim"
-    cond[cond=="1_0_Distractor"] = "Tar  "
-    cond[cond=="4_0_Dcol"] = "Dsim "
-    cond = factor(cond, levels=c("Tar", "Sim", "Tar ", "Dsim",
-                                 "Tar  ", "Dsim "))
-  })
+#   # Make vector for plotting based on Sac destination
+#   plot.dat$fillon <- paste(plot.dat$on1)
+#     plot.dat$fillon[plot.dat$fillon=="4"] = "3"
+#     plot.dat$fillon[plot.dat$fillon=="3" & plot.dat$endia=="Sim"] = "2"
+#     plot.dat$fillon[plot.dat$fillon=="2" & 
+#                     plot.dat$on2 == 0 &
+#                     plot.dat$endia=="Distractor"] = "3"
+#     plot.dat$fillon[plot.dat$fillon=="1"] = "2"
+#   # Make factor to so we can define level order
+#   plot.dat$fillon = factor(plot.dat$fillon, levels=c("3", "2"))
+# 
+#   # Try something tricky to get x labels to be right
+#   plot.dat <- within(plot.dat, {
+#     cond[cond=="2_1_Distractor"] = "Tar"
+#     cond[cond=="2_2_On1"] = "Sim"
+#     cond[cond=="3_1_Distractor"] = "Tar "
+#     cond[cond=="3_3_On1"] = "Dsim"
+#     cond[cond=="1_0_Distractor"] = "Tar  "
+#     cond[cond=="4_0_Dcol"] = "Dsim "
+#     cond = factor(cond, levels=c("Tar", "Sim", "Tar ", "Dsim",
+#                                  "Tar  ", "Dsim "))
+#   })
 
 # Shared Pvals
 ptheme <- theme(axis.text.x = element_text(angle=-45, hjust=0, size=12,
@@ -221,12 +221,22 @@ poster.theme <- theme(legend.position = c(1, 1),
                       #axis.text.x = element_text(angle=-45, hjust=0),
                       axis.title.x = element_blank())
 
-pvals <- list(stat_summary(fun.y=mean, geom="bar", position="dodge"),
-              stat_summary(fun.data=mean_cl_normal, geom="linerange"),
-              scale_x_discrete("Second Onset"),
-              scale_fill_discrete("Saccade Destination", labels=c("Dissimilar",
-                                                                  "Similar")),
-              poster.theme)
+powerpoint <- theme(legend.position = c(1, 1),
+                   legend.justification = c(1, 1),
+                   legend.text = element_text(size = 18),
+                   axis.text = element_text(size = 18),
+                   axis.title = element_text(size = 26),
+                   axis.title.y = element_text(vjust = 0.6),
+                   axis.title.x = element_blank(),
+                   #axis.text.x = element_text(angle=-45, hjust=0),
+                   axis.title.x = element_blank())
+
+
+pvals <- list(
+  stat_summary(fun.y=mean, geom="bar", position="dodge", fill="#99CCFF"),
+  stat_summary(fun.data=mean_cl_normal, geom="linerange"),
+  scale_x_discrete(labels=c("Sim->Target", "Dis->Target", "Dis->Dis")),
+  powerpoint )
 
 # Diagnostic Plot
 tnum.plot <- ggplot(sub.ln, aes(cond, slat, fill=onsets))+
@@ -247,32 +257,32 @@ ggplot(pdat2, aes(cond, props, fill=onsets)) + labs(title="2nd Saccades")+
   pvals
 
 # Eye DVs
-slat.plot <- ggplot(plot.dat, aes(cond, slat, fill=fillon))+
+slat.plot <- ggplot(plot.dat, aes(cond, slat))+
                     ylab("Saccade Latency (ms)")+
-                    coord_cartesian(ylim=c(170,290))+
-                    annotate("text", 2, 270, label="*", size=24)+
-                    annotate("segment", x=1, xend=3, y=269, yend=269, size=1.5)+      
+                    coord_cartesian(ylim=c(170, 275))+
+                    #annotate("text", 2, 270, label="*", size=24)+
+                    #annotate("segment", x=1, xend=3, y=269, yend=269, size=1.5)+      
                     pvals
 
 amp.plot <- ggplot(plot.dat, aes(cond, samp))+
                   ylab("Saccade Amplitude (deg)")+
                   coord_cartesian(ylim=c(3, 5.1))+
-                  pvals+
-                  theme(legend.position = c(-1,-1))+
-                  annotate("segment", x=c(.9, 2.5, 2.5), xend=c(2.5, 2.5, 4.1),
-                           y=c(4.9, 4.9, 4.6), yend=c(4.9, 4.6, 4.6), size=1.5)+      
-                  annotate("text", 2.5, 4.95, label="*", size=24)
+                  pvals#+
+                  #theme(legend.position = c(-1,-1))+
+                  #annotate("segment", x=c(.9, 2.5, 2.5), xend=c(2.5, 2.5, 4.1),
+                  #         y=c(4.9, 4.9, 4.6), yend=c(4.9, 4.6, 4.6), size=1.5)+      
+                  #annotate("text", 2.5, 4.95, label="*", size=24)
 
 fix.plot  <- ggplot(plot.dat, aes(cond, fixdur))+
                     ylab("Fixation Duration (ms)")+
-                    pvals+
-                    theme(legend.position = c(-1,-1))+
-                    annotate("text", 3.4, 175, label="*", size=24)+
-                    annotate("text", 2.7, 200, label="*", size=24, alpha=.4)+
-                    annotate("text", 2.7, 208, label="X", size=12, color="red",
-                             alpha=.6)+
-                    annotate("segment", x=1.9, xend=3.9, y=200, yend=200,
-                             size=1.5, alpha=.4)        
+                    pvals#+
+#                     theme(legend.position = c(-1,-1))+
+#                     annotate("text", 3.4, 175, label="*", size=24)+
+#                     annotate("text", 2.7, 200, label="*", size=24, alpha=.4)+
+#                     annotate("text", 2.7, 208, label="X", size=12, color="red",
+#                              alpha=.6)+
+#                     annotate("segment", x=1.9, xend=3.9, y=200, yend=200,
+#                              size=1.5, alpha=.4)        
   
 
 # Display and save
@@ -291,12 +301,12 @@ ggplot(subset(sub.lvl, cond=="2_1_Distractor"), aes(tnum, samp))+
   geom_point()+
   geom_smooth(method=lm)
 
-# kPsize <- 20
-# ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="cm",
-#        dpi = 600)
-# ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize,
-#        units = "cm",
-#        dpi = 600)
-# ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
-#        units = "cm",
-#        dpi = 600)
+kPsize <- 20
+ggsave("figs/joy/lat.png", slat.plot, height=kPsize, width=kPsize, units="cm",
+       dpi = 72)
+ggsave("figs/joy/amp.png", amp.plot, height = kPsize, width = kPsize,
+       units = "cm",
+       dpi = 72)
+ggsave("figs/joy/fix.png", fix.plot, height = kPsize, width = kPsize,
+       units = "cm",
+       dpi = 72)
