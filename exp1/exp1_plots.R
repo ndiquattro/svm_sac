@@ -117,6 +117,9 @@ ggsave("figs/fix_small.tiff", fixplot, height = psize, width = psize, units = "i
 
 # Load data
 cdat <- read.csv("svm1_svmc_dat.txt", header=T)
+con.dat <- read.csv("svm1_svmcontrol_dat.txt", header=T)
+  con.dat <- con.dat[-1,]  # Remove subject without Sal captures
+
 
 # Find means
 cl.mn <- summarise(cdat,
@@ -124,13 +127,20 @@ cl.mn <- summarise(cdat,
             sacc = sd(acc)
             )
 
+conl.mn <- summarise(con.dat,
+                   macc = mean(acc),
+                   sacc = sd(acc) )
+
 # Compare subject means to chance level
-wt <- wilcox.test(cdat$acc, mu=.5, exact=TRUE)
+wt <- wilcox.test(cdat$acc, mu=.5, exact=FALSE)
   wt.z <- qnorm(wt$p.value/2)
 
-# Check z value
-library(coin)
-wt2 <- wilcoxsign_test(cdat$acc)
+wtc <- wilcox.test(con.dat$acc, mu=.5, exact=FALSE)
+wtc.z <- qnorm(wtc$p.value/2)
+
+# Weight Tests
+wilcox.test(abs(cdat$slatw), abs(cdat$sampw), paired=TRUE, exact=FALSE)
+
 
 # Make plot
 cplot <- ggplot(cdat, aes(snum,acc))+
