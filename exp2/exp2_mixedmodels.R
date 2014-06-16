@@ -17,68 +17,7 @@ if (Sys.info()['sysname'] == "Darwin") {
 library(lme4)
 library(lmerTest)
 library(ggplot2)
-
-# Functions ---------------------------------------------------------------
-
-ForDiffMaker <- function(k) {
-  # Makes a contrast matrix for forward difference coding used in regression
-  # Args:
-  #   k: number of levels in factor
-  # Returns:
-  #   cmat: a matrix
-  cmat = matrix(nrow = k, ncol = k -1)  # Create an empty matrix
-    for (i in 1:ncol(cmat)) {
-      cmat[1:i,i] = k-i
-      cmat[(i+1):nrow(cmat),i] = i * -1
-    }
-  cmat = cmat / k
-  return(cmat)
- }   
-OutlierMarker = function(df, form, cut) {
-  # Finds outliers in a dataframe
-  # Args:
-  #   df: data frame
-  #   form: formula for subsetting the data
-  #   cut: Number of Standard Deviations to set threshold at
-  # Returns:
-  #   lv: logical vector of outlier presence
-  
-  # Decompose formula
-  fvars <- all.vars(form)
-  
-  # Find means and SDs based on formula
-  mn.dat <- aggregate(form, df, mean)
-  sd.dat <- aggregate(form, df, sd)
-    # Merge stat data
-    outs <- merge(mn.dat, sd.dat, by=fvars[2:length(fvars)], suffixes=c(".mn",
-                                                                        ".sd"))
-
-  # Make upper and lower thresholds based on cut
-  odim <- dim(outs)
-  outs$lpc = outs[,odim[2]-1] - (outs[,odim[2]] * cut)
-  outs$upc = outs[,odim[2]-1] + (outs[,odim[2]] * cut)
-
-  # Make index for orignal dataframe where values are above or below thresholds
-  cnames <- colnames(outs)
-  lv <- logical(length=dim(df)[1])
-  
-  for (a in 1:odim[1]) {
-    cur.row <- outs[a,]
-    cur.log <- with(df, {
-                    cnames[1] == cur.row[cnames[1]] &
-                    cnames[2] == cur.row[cnames[2]] &
-                    cnames[3] == cur.row[cnames[3]] &(
-                    fvars[1] < cur.row$lpc |
-                    fvars[1] > cur.row$upc)
-    })
-    #cur.log <- df[,cnames[1]] == currow[,cnames[1]]&
-    #df[,cnames[2]] == currow[,cnames[2]] &df[,cnames[3]] == currow[,cnames[3]]&
-    #(df[,fvars[1]] < currow$lpc | df[,fvars[1]] > currow$upc)
-    lv <- lv + cur.log
-  }
-  
-  return(as.logical(lv))
- }
+library(dplyr)
 
 # Load Data ---------------------------------------------------------------
 
@@ -95,12 +34,54 @@ sdf <- within(sdf,{
 })
 
 # Outlier Removal
-sdf <- subset(sdf,samp<7)  # Remove trials with weird amplitdues
-fout <- OutlierMarker(sdf, fixdur~dtype+soa+sub, 2.5) # Fix duraiton outliers
-sout <- OutlierMarker(sdf, slat~dtype+soa+sub, 2.5)  # Saccade latency outliers
-#sdf <- subset(sdf, !sout | !fout)  # Remove outliers
+sdf <- subset(sdf, samp<7)  # Remove trials with weird amplitdues
 
-# Plot Means --------------------------------------------------------------
+
+# Behavioral Stats --------------------------------------------------------
+
+# Calculate means
+bdat <- sdf %>%
+          group_by(dtype, soa, sub) %>%
+          summarise(
+            acc = mean(cor, na.rm = TRUE),
+            rt = mean(rt[cor==1], na.rm = TRUE) )
+
+obdat <- summarise(bdat,
+                   acc = mean(acc),
+                   rt = mean(rt) ) %>%
+         summarise(
+           acc = mean(acc),
+           rt = mean(rt) )
+
+bdat <- as.data.frame(bdat)
+
+# plot it to check it out
+ggplot(bdat, aes(soa, acc, color=dtype)) + 
+        stat_summary(fun.y=mean, geom="line", size = 2) +
+        stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size=2)
+
+# Accuracy
+  # mixed model
+  acc.mod <- lmer(acc ~ dtype*soa + (dtype*soa|sub), bdat)
+    acc.sum <- summary(acc.mod)
+    acc.aov <- anova(acc.mod)
+
+  # Normal RM ANOVA
+  bdat$soaF <- as.factor(bdat$soa)  # make factor vector
+
+  acc.aovrm <- aov(acc ~ dtype*soaF + Error(sub/(dtype*soaF)), bdat)
+  acc.aovrm.sum <- summary(acc.aovrm)
+
+# Reaction Time
+  # RM ANOVA
+  rt.aovrm <- aov(rt ~ dtype*soaF + Error(sub/(dtype*soaF)), bdat)
+    rt.aov.rm.sum <- summary(rt.aovrm)
+
+
+# Summary Stats for Eye Data ----------------------------------------------
+
+# Remove incorrect trials
+sdf <- subset(sdf, cor==1)
 
 # Find means
 sdat <- aggregate(cbind(slat,samp,fixdur) ~ dtype+soa+sub, FUN=mean, sdf)
@@ -172,19 +153,52 @@ lat.den <- ggplot(sdf, aes(x=rt, fill=dtype, alpha=.6))+
 
 
 # Fit mixed models --------------------------------------------------------
+# Remove incorrect trials
+sdf <- subset(sdf, cor==1)
 
 # Increase interations
 iters <- lmerControl(optCtrl=list(maxfun=1000000))
+#, control=iters
 
 # Latency Models
-slat.mod <- lmer(log(slat) ~ dtype*soa + (dtype*soa|sub), sdf, control=iters)
+sdf$dtype <- relevel(sdf$dtype, "Similar")
+slat.mod <- lmer(slat ~ dtype*soa + (dtype*soa|sub), sdf)
   slat.sum <- summary(slat.mod)
+  slat.aov <- anova(slat.mod)
+
+  # Diagnostics
+  plot(slat.mod)
+  qqnorm(residuals(slat.mod))
+  qqline(residuals(slat.mod))
+  hist(residuals(slat.mod))
+  ggplot(slat.mod, aes(soa, .resid, color=dtype))+
+    geom_point(position="jitter")+
+    geom_hline(yintercept=0)
 
 # Amplitude Models
-amp.mod <- lmer(log(samp) ~ dtype*soa + (dtype*soa|sub), sdf, control=iters)
+amp.mod <- lmer(samp ~ dtype*soa + (dtype*soa|sub), sdf)
   amp.sum <- summary(amp.mod)
-#ampnull <- lmer(samp ~ 1 + (dtype*soa|sub), sdf, control=iters)  # Null model
+  amp.aov <- anova(amp.mod)
+
+  # Diagnostics
+  plot(amp.mod)
+  qqnorm(residuals(amp.mod))
+  qqline(residuals(amp.mod))
+  hist(residuals(amp.mod))
+  ggplot(amp.mod, aes(soa, .resid, color=dtype))+
+    geom_point(position="jitter")+
+    geom_hline(yintercept=0)
 
 # Fixation Duration model
-fix.mod <- lmer(log(fixdur) ~ dtype*soa + (dtype*soa|sub), sdf, control=iters)
+fix.mod <- lmer(fixdur ~ dtype*soa + (dtype*soa|sub), sdf)
   fix.sum <- summary(fix.mod)
+  fix.aov <- anova(fix.mod)
+  
+  # Diagnostics
+  plot(fix.mod)
+  qqnorm(residuals(fix.mod))
+  qqline(residuals(fix.mod))
+  hist(residuals(fix.mod))
+  ggplot(fix.mod, aes(soa, .resid, color=dtype))+
+    geom_point(position="jitter")+
+    geom_hline(yintercept=0)
