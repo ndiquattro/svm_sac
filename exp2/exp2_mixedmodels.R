@@ -202,3 +202,35 @@ fix.mod <- lmer(fixdur ~ dtype*soa + (dtype*soa|sub), sdf)
   ggplot(fix.mod, aes(soa, .resid, color=dtype))+
     geom_point(position="jitter")+
     geom_hline(yintercept=0)
+
+
+# Saccade Proportion Data -------------------------------------------------
+
+# Load Data
+sprop <- read.csv("svm3_sacprop_dat.txt", header=TRUE, stringsAsFactors=FALSE)
+  # Make Text Vectors
+  sprop$dtype[sprop$ttype==1] <- "Similar"
+  sprop$dtype[sprop$ttype==2] <- "Dissimilar"
+
+# Set data up
+sprop <- within(sprop, {
+                  dtype = factor(dtype, levels=c("Dissimilar", "Similar"))
+                  soa = factor(soa)
+                  sub = factor(sub)
+                  }
+                )
+
+# Find means
+pmeans <- sprop %>%
+            group_by(dtype, soa) %>%
+            summarise(
+              mpro = mean(props))
+
+# plot
+ggplot(pmeans, aes(soa, mpro, group=dtype, color=dtype)) + geom_line()
+
+# Try stats
+prop.mod <- lmer(props ~ dtype*soa + (dtype*soa|sub), sprop)
+
+# RM ANOVA
+prop.aov <- aov(props ~ dtype*soa + Error(sub / (dtype*soa)), sprop)
