@@ -123,7 +123,7 @@ den2 <- aggregate(slat ~ on1 + on2 + sub, sac2, length)
 # Stats -------------------------------------------------------------------
   
 # Subset for Stats
-coi <- c("2_1_Distractor", "3_1_Distractor", "3_3_On1")
+coi <- c("3_2_On1", "3_3_On1", "2_2_On1")
 sdat <- subset(sub.mn, cond %in% coi)
 
 # # Test for low tnum ##
@@ -159,6 +159,11 @@ sdat <- subset(sub.mn, cond %in% coi)
   amp.t <- with(sdat, pairwise.t.test(samp, cond, "bon", paired=TRUE))
   fix.t <- with(sdat, pairwise.t.test(fixdur, cond, "bon", paired=TRUE))
 
+# Ts
+t.test(slat ~ cond, sdat, pair=TRUE)
+t.test(samp ~ cond, sdat, pair=TRUE)
+t.test(fixdur ~ cond, sdat, pair=TRUE)
+
 # Mixed Models ------------------------------------------------------------
   library(lme4)
   library(lmerTest)
@@ -166,9 +171,9 @@ sdat <- subset(sub.mn, cond %in% coi)
   # Get data
   mixed.dat <- subset(fsac, condmm %in% coi)
     mixed.dat$condmm <- factor(mixed.dat$condmm)
-      mixed.dat$condmm <-relevel(mixed.dat$condmm, "3_3_On1")
+      mixed.dat$condmm <-relevel(mixed.dat$condmm, "2_2_On1")
 
-  # Fit models
+  # Fit models   --Not sure if need random slopes or not..
   slat.mm <- lmer(slat ~ condmm+ (condmm|sub), mixed.dat)
     summary(slat.mm)
 
@@ -235,7 +240,7 @@ powerpoint <- theme(legend.position = c(1, 1),
 pvals <- list(
   stat_summary(fun.y=mean, geom="bar", position="dodge", fill="#99CCFF"),
   stat_summary(fun.data=mean_cl_normal, geom="linerange"),
-  scale_x_discrete(labels=c("Sim->Target", "Dis->Target", "Dis->Dis")),
+  #scale_x_discrete(labels=c("Sim->Target", "Dis->Target", "Dis->Dis")),
   powerpoint )
 
 # Diagnostic Plot
