@@ -102,28 +102,38 @@ gdat <- aggregate(cbind(slat,samp,fixdur) ~ dtype+soa, FUN=mean, sdat)
                         axis.text = element_text(size = 24),
                         axis.title = element_text(size = 32),
                         axis.title.y = element_text(vjust = 0.3),
-                        axis.title.x = element_text(vjust = 0.3))
+                        axis.title.x = element_text(vjust = 0.3) )
+
+  apa.theme <- theme(panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     panel.background = element_blank(),
+                     axis.line = element_line(colour = "black"),
+                     legend.title=element_blank(),
+                     legend.position="bottom",
+                     axis.title = element_text(size = 12),
+                     axis.title.y = element_text(vjust = 1),
+                     axis.text = element_text(size = 10) )
 
 
   # Plot values
-  pvals <- list(scale_x_continuous(labels=c("-100","-68","-33","0"),
+  dcolors <- c("#bebada", "#8dd3c7")
+  pvals <- list(scale_x_continuous(labels=c("-100", "-68", "-33", "0"),
                                    name="Distractor -> Target SOA"),
-                stat_summary(fun.y=mean, geom="line", size = 2),
-                stat_summary(fun.data = mean_cl_normal, geom = "pointrange",
-                             size=2),
-                poster.theme)
+                stat_summary(fun.y=mean, geom="line", size=2),
+                 stat_summary(fun.data=mean_cl_normal, geom="pointrange", size=2),
+                scale_color_manual(values=dcolors),
+                apa.theme)
 
 # Make Plots
 lat.plot <- ggplot(sdat, aes(soa, slat, color=dtype))+
-                  ylab("Saccade Latency (ms)") + pvals
+                  ylab("Saccade Latency (ms)")+
+                  pvals
 
 amp.plot <- ggplot(sdat, aes(soa, samp, color=dtype))+
-                  ylab("Saccade Amplitude (deg)") + pvals+
-                  theme(legend.position = c(-1,-1))
+                  ylab("Saccade Amplitude (deg)") + pvals
 
 fix.plot <- ggplot(sdat, aes(soa, fixdur, color=dtype))+
-                  ylab("Fixation Duration (ms)") + pvals+
-                  theme(legend.position = c(-1,-1))
+                  ylab("Fixation Duration (ms)") + pvals
 
 # Display and Save
 lat.plot
@@ -135,13 +145,13 @@ lat.den <- ggplot(sdf, aes(x=rt, fill=dtype, alpha=.6))+
                   geom_density()+
                   facet_wrap(~soa)
 
-# kPsize <- 20
-# ggsave("figs/lat.tiff", lat.plot, height = kPsize, width = kPsize, units = "cm",
-#        dpi = 600)
-# ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize, units = "cm",
-#        dpi = 600)
-# ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize, units = "cm",
-#        dpi = 600)
+kPsize <- 3
+ggsave("figs/lat.tiff", lat.plot, height = kPsize, width = kPsize, units = "in",
+       dpi = 600)
+ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize, units = "in",
+       dpi = 600)
+ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize, units = "in",
+       dpi = 600)
 
 # kPsize <- 6
 # ggsave("figs/lat_small.tiff", lat.plot, height = kPsize, width = kPsize, units = "in",
@@ -215,7 +225,7 @@ sprop <- read.csv("svm3_sacprop_dat.txt", header=TRUE, stringsAsFactors=FALSE)
 # Set data up
 sprop <- within(sprop, {
                   dtype = factor(dtype, levels=c("Dissimilar", "Similar"))
-                  soa = factor(soa)
+                  #soa = factor(soa)
                   sub = factor(sub)
                   }
                 )
@@ -228,6 +238,14 @@ pmeans <- sprop %>%
 
 # plot
 ggplot(pmeans, aes(soa, mpro, group=dtype, color=dtype)) + geom_line()
+
+pro.plot <- ggplot(sprop, aes(soa, props, color=dtype))+
+              ylab("Proportion of Capture")+
+              scale_y_continuous(breaks=seq(0,.9,.1))+
+              pvals
+
+ggsave("figs/props.tiff", fix.plot, height = kPsize, width = kPsize, units = "in",
+       dpi = 600)
 
 # Try stats
 prop.mod <- lmer(props ~ dtype*soa + (dtype*soa|sub), sprop)
