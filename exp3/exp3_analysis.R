@@ -62,8 +62,17 @@ sac2 <- subset(dat, sidx==2 & pupil==0 & cor==1 & pstia=="fix" &
                     (pendia=="Distractor" | pendia=="On1"))
 
 # Behavioral means
+bmeans <- bhav %>%
+            group_by(on1, on2, endia, soa, sub) %>%
+            summarise(
+              acc = mean(cor),
+              rt = mean(rt[cor==1]))
+
 oacc.mn <- aggregate(cor ~ sub, bhav, mean)  # Overall Accuracy
 sub.acc <- aggregate(cor ~ on1 + on2 + endia + soa + sub, bhav, mean)
+  # Make condition vector
+  sub.acc$cond <- with(sub.acc, paste(on1,on2,endia, sep="_"))
+
   grp.acc <- aggregate(cor ~ on1 + on2 + endia + soa, sub.acc, mean)
 
 # Subject level means of DVs
@@ -124,7 +133,10 @@ den2 <- aggregate(slat ~ on1 + on2 + sub, sac2, length)
   
 # Subset for Stats
 coi <- c("3_2_On1", "3_3_On1", "2_2_On1")
-sdat <- subset(sub.mn, cond %in% coi)
+sdat <- subset(sub.acc, cond %in% coi)
+pdat <- subset(num, cond %in% coi)
+pdat2 <- subset(num2, cond == "3_2_On2" | cond == "3_3_On2" |
+                  cond=="2_2_On2")
 
 # # Test for low tnum ##
 # lowsub = subset(sub.ln, cond=="3_1_Distractor" & slat < 10)
@@ -164,6 +176,23 @@ t.test(slat ~ cond, sdat, pair=TRUE)
 t.test(samp ~ cond, sdat, pair=TRUE)
 t.test(fixdur ~ cond, sdat, pair=TRUE)
 
+# Behavioral
+acc.aov <- aov(cor ~ cond + Error(sub/cond), sdat)
+  summary(acc.aov)
+
+# Saccade proportion
+pro.aov <- aov(props ~ cond + Error(sub/cond), pdat)
+  summary(pro.aov)
+
+pro.t <- with(pdat, pairwise.t.test(props, cond, "bon", paired=TRUE))
+  tvals <- qt(pro.t$p.value, 23)  # Use uncorrected p-vals
+
+t.test(pdat$props[pdat$cond=="3_3_On1"], pdat$props[pdat$cond=="3_2_On1"], paired=TRUE)
+
+# Saccade proportion for 2nd saccades
+no2sub <-c("22_ew", "27_lp")  # subs with no 2nd sacs in 3_3_
+t.test(props ~ cond, pdat2, !cond%in%"2_2_On2"&!sub%in%no2sub, paired = TRUE)
+
 # Mixed Models ------------------------------------------------------------
   library(lme4)
   library(lmerTest)
@@ -185,31 +214,6 @@ t.test(fixdur ~ cond, sdat, pair=TRUE)
 
 
 # Plot it! ----------------------------------------------------------------
-
-# Which data for plotting?
-plot.dat <- sdat
-#   # Make vector for plotting based on Sac destination
-#   plot.dat$fillon <- paste(plot.dat$on1)
-#     plot.dat$fillon[plot.dat$fillon=="4"] = "3"
-#     plot.dat$fillon[plot.dat$fillon=="3" & plot.dat$endia=="Sim"] = "2"
-#     plot.dat$fillon[plot.dat$fillon=="2" & 
-#                     plot.dat$on2 == 0 &
-#                     plot.dat$endia=="Distractor"] = "3"
-#     plot.dat$fillon[plot.dat$fillon=="1"] = "2"
-#   # Make factor to so we can define level order
-#   plot.dat$fillon = factor(plot.dat$fillon, levels=c("3", "2"))
-# 
-#   # Try something tricky to get x labels to be right
-#   plot.dat <- within(plot.dat, {
-#     cond[cond=="2_1_Distractor"] = "Tar"
-#     cond[cond=="2_2_On1"] = "Sim"
-#     cond[cond=="3_1_Distractor"] = "Tar "
-#     cond[cond=="3_3_On1"] = "Dsim"
-#     cond[cond=="1_0_Distractor"] = "Tar  "
-#     cond[cond=="4_0_Dcol"] = "Dsim "
-#     cond = factor(cond, levels=c("Tar", "Sim", "Tar ", "Dsim",
-#                                  "Tar  ", "Dsim "))
-#   })
 
 # Shared Pvals
 ptheme <- theme(axis.text.x = element_text(angle=-45, hjust=0, size=12,
@@ -244,32 +248,37 @@ pvals <- list(
   powerpoint )
 
 # Diagnostic Plot
-tnum.plot <- ggplot(sub.ln, aes(cond, slat, fill=onsets))+
+pcount <- subset(sub.ln, cond %in% coi)
+tnum.plot <- ggplot(pcount, aes(cond, slat, fill=onsets))+
                     scale_y_continuous("Mean Number of Trials", breaks=1:40)+
-                    geom_boxplot()+ ptheme
+                    geom_boxplot()
                     #pvals
 
+# Behavior Plot
+ggplot(sdat, aes(cond, cor)) + pvals
+
 # Saccade Proportion plot
-spro.plot <- ggplot(num, aes(cond, props, fill=onsets))+
+coi.pro <- subset(num, cond %in% coi)
+spro.plot <- ggplot(coi.pro, aes(cond, props, fill=onsets))+
               scale_y_continuous("Proportion of Saccades", breaks=seq(0,1,.1))+
               pvals + ptheme
 
 # 2nd saccades proportion plot
-pdat2 <- subset(num2, cond == "3_1_Target" | cond == "3_3_On2" |
+pdat2 <- subset(num2, cond == "3_2_On2" | cond == "3_3_On2" |
                       cond=="2_2_On2")
 ggplot(pdat2, aes(cond, props, fill=onsets)) + labs(title="2nd Saccades")+
   scale_y_continuous("Proportion of Saccades", breaks=seq(0,1,.1))+
   pvals
 
 # Eye DVs
-slat.plot <- ggplot(plot.dat, aes(cond, slat))+
+slat.plot <- ggplot(sdat, aes(cond, slat))+
                     ylab("Saccade Latency (ms)")+
                     coord_cartesian(ylim=c(170, 275))+
                     #annotate("text", 2, 270, label="*", size=24)+
                     #annotate("segment", x=1, xend=3, y=269, yend=269, size=1.5)+      
                     pvals
 
-amp.plot <- ggplot(plot.dat, aes(cond, samp))+
+amp.plot <- ggplot(sdat, aes(cond, samp))+
                   ylab("Saccade Amplitude (deg)")+
                   coord_cartesian(ylim=c(3, 5.1))+
                   pvals#+
@@ -278,7 +287,7 @@ amp.plot <- ggplot(plot.dat, aes(cond, samp))+
                   #         y=c(4.9, 4.9, 4.6), yend=c(4.9, 4.6, 4.6), size=1.5)+      
                   #annotate("text", 2.5, 4.95, label="*", size=24)
 
-fix.plot  <- ggplot(plot.dat, aes(cond, fixdur))+
+fix.plot  <- ggplot(sdat, aes(cond, fixdur))+
                     ylab("Fixation Duration (ms)")+
                     pvals#+
 #                     theme(legend.position = c(-1,-1))+
