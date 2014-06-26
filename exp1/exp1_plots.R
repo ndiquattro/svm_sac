@@ -25,7 +25,7 @@ sdf <- read.csv("svm1_1sac_dat.txt", header = T)
   sdf$dtype <- NA
   sdf$sdest <- NA
   sdf <- within(sdf,{
-    dtype[ttype==1] = "Neutral"
+    dtype[ttype==1] = "Dissimilar"
     dtype[ttype==2] = "Similar"
     dtype[ttype==3] = "Salient"
     sdest[endia==3] = "Distractor"
@@ -48,7 +48,6 @@ t.test(cor.y ~ dtype, sdf, endia==3, paired=TRUE)
 
 # Plot --------------------------------------------------------------------
 
-
 # Set-up shared plot theme
 nogrid <- theme(panel.grid.major = element_blank(),
                 panel.grid.minor = element_blank(),
@@ -67,29 +66,44 @@ poster.theme <- theme(legend.title=element_blank(),
                     axis.title.x = element_text(vjust = 0.3)
                     )
 
+apa.theme <- theme(panel.grid.major = element_blank(),
+                   panel.grid.minor = element_blank(),
+                   panel.background = element_blank(),
+                   axis.line = element_line(colour = "black"),
+                   legend.title=element_blank(),
+                   axis.title = element_text(size = 12),
+                   axis.title.y = element_text(vjust = 1),
+                   axis.text = element_text(size = 10) )
+
 # Set up shared Plot Values for DV means
-pvals <- list(xlab("Saccade Destination"),
-              stat_summary(fun.y=mean, geom="bar",
-                           position=position_dodge(width=.9)),
+dcolors <- c("#bebada", "#8dd3c7")
+pvals <- list(xlab("Distractor Type"),
+              stat_summary(fun.y=mean, geom="bar"),
               stat_summary(fun.data = mean_cl_normal, geom = "linerange",
-                           position=position_dodge(width=0.9), show_guide=F),
-              poster.theme
-              )
+                           show_guide=FALSE),
+              scale_fill_manual(values=dcolors, guide=FALSE),
+              apa.theme)
+
+# Subset data
+pdat <- subset(sdf, sdest=="Distractor")
 
 # Make Plots
-latplot <- ggplot(sdf,aes(sdest,slat,fill=dtype))+
+latplot <- ggplot(pdat, aes(dtype, slat, fill=dtype))+
                   ylab("Saccade Latency (ms)")+
-                  coord_cartesian(ylim=c(210,280))+
+                  coord_cartesian(ylim=c(210, 275))+
+                  scale_y_continuous(breaks=seq(220,275,10))+
                   pvals
 
-ampplot <- ggplot(sdf,aes(sdest,samp,fill=dtype))+
+ampplot <- ggplot(pdat,aes(dtype, samp, fill=dtype))+
                   ylab("Saccade Amplitude (Degs)")+
-                  coord_cartesian(ylim=c(3.8,5.1))+
+                  coord_cartesian(ylim=c(3.8, 5))+
+                  scale_y_continuous(breaks=seq(3.9, 5, .2))+
                   pvals
 
-fixplot <- ggplot(sdf,aes(sdest,fixdur,fill=dtype))+
+fixplot <- ggplot(pdat, aes(dtype, fixdur, fill=dtype))+
                   ylab("Fixation Duration (ms)")+
-                  coord_cartesian(ylim=c(70,227))+
+                  coord_cartesian(ylim=c(50, 200))+
+                  scale_y_continuous(breaks=seq(50, 200, 20))+
                   pvals
 
 rtplot  <- ggplot(sdf,aes(sdest,rt,fill=dtype))+
@@ -104,13 +118,13 @@ fixplot
 rtplot
 
 # Save Plots
-psize <- 6
-ggsave("figs/lat_small.tiff", latplot, height = psize, width = psize, units = "in",
-       dpi = 600)
-ggsave("figs/amp_small.tiff", ampplot, height = psize, width = psize, units = "in",
-       dpi = 600)
-ggsave("figs/fix_small.tiff", fixplot, height = psize, width = psize, units = "in",
-       dpi = 600)
+psize <- 3
+ggsave("figs/lat_exp1.tiff", latplot, height=psize, width=psize, units="in",
+       dpi=600)
+ggsave("figs/amp_exp1.tiff", ampplot, height=psize, width=psize, units="in",
+       dpi=600)
+ggsave("figs/fix_exp1.tiff", fixplot,height=psize, width=psize, units="in",
+       dpi=600)
 # ggsave("figs/rt.png",rtplot)
 
 # Classifier Plot ---------------------------------------------------------
@@ -143,22 +157,20 @@ wilcox.test(abs(cdat$slatw), abs(cdat$sampw), paired=TRUE, exact=FALSE)
 
 
 # Make plot
-cplot <- ggplot(cdat, aes(snum,acc))+
-                labs(x = "Subject", y = "Classifier Accuracy")+
-                geom_bar(stat = "identity", alpha = .6)+
-                geom_hline(aes(yintercept = .5, size = 1), linetype = "dotted",
-                           size = 1)+
-                geom_hline(aes(yintercept = mean(cdat$acc), size = .5))+
-                coord_cartesian(ylim = c(.4, 1))+
-                annotate("text", x = 22, y = mean(cdat$acc)-.01,
-                         label = "Group Mean", color = "black", fontface = 2)+
-                poster.theme
+cplot <- ggplot(cdat, aes(snum, acc))+
+                labs(x="Subject", y="Classifier Accuracy")+
+                geom_bar(stat="identity", alpha=.6)+
+                geom_hline(aes(yintercept=.5, size=1), linetype="dotted", size=1)+
+                geom_hline(aes(yintercept=mean(cdat$acc), size=.1))+
+                coord_cartesian(ylim=c(.4, 1))+
+                scale_x_discrete(breaks=seq(1, 24, 4))+
+                apa.theme
 
 # Display and Save
 cplot
 
-# ggsave("figs/classacc_small.tiff",cplot, height = 8, width = 8, units = "in",
-#        dpi = 600)
+ggsave("figs/classacc_paper.tiff", cplot, height = 3, width = 3, units = "in",
+       dpi = 600)
 
 # Saccade Proportion Plot -------------------------------------------------
   
