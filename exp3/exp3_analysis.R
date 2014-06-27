@@ -112,7 +112,7 @@ sub.lvl <- fsac %.%
             summarise(
               slat   = mean(slat),
               samp   = mean(samp),
-              fixdur = mean(fixdur),
+              fixdur = mean(fixdur, na.rm=TRUE),
               tnum   = n()) %.%
             mutate(cond = paste(on1,on2,endia, sep="_"))
 
@@ -158,23 +158,23 @@ pdat2 <- subset(num2, cond == "3_2_On2" | cond == "3_3_On2" |
 #   t.test(samp ~ endia, data=ondiff, paired=TRUE)
 
 
-# Anovas
-  slat.mod <- aov(slat ~ cond + Error(sub/cond), sdat)
-    summary(slat.mod)
-  samp.mod <- aov(samp ~ cond + Error(sub/cond), sdat)
-    summary(samp.mod)
-  fix.mod <- aov(fixdur ~ cond + Error(sub/cond), sdat)
-    summary(fix.mod)
-
-  # Post-hoc t-tests
-  slat.t <- with(sdat, pairwise.t.test(slat, cond, "bon", paired=TRUE))
-  amp.t <- with(sdat, pairwise.t.test(samp, cond, "bon", paired=TRUE))
-  fix.t <- with(sdat, pairwise.t.test(fixdur, cond, "bon", paired=TRUE))
-
-# Ts
-t.test(slat ~ cond, sdat, pair=TRUE)
-t.test(samp ~ cond, sdat, pair=TRUE)
-t.test(fixdur ~ cond, sdat, pair=TRUE)
+# # Anovas
+#   slat.mod <- aov(slat ~ cond + Error(sub/cond), sdat)
+#     summary(slat.mod)
+#   samp.mod <- aov(samp ~ cond + Error(sub/cond), sdat)
+#     summary(samp.mod)
+#   fix.mod <- aov(fixdur ~ cond + Error(sub/cond), sdat)
+#     summary(fix.mod)
+# 
+#   # Post-hoc t-tests
+#   slat.t <- with(sdat, pairwise.t.test(slat, cond, "bon", paired=TRUE))
+#   amp.t <- with(sdat, pairwise.t.test(samp, cond, "bon", paired=TRUE))
+#   fix.t <- with(sdat, pairwise.t.test(fixdur, cond, "bon", paired=TRUE))
+# 
+# # Ts
+# t.test(slat ~ cond, sdat, pair=TRUE)
+# t.test(samp ~ cond, sdat, pair=TRUE)
+# t.test(fixdur ~ cond, sdat, pair=TRUE)
 
 # Behavioral
 acc.aov <- aov(cor ~ cond + Error(sub/cond), sdat)
@@ -194,28 +194,28 @@ no2sub <-c("22_ew", "27_lp")  # subs with no 2nd sacs in 3_3_
 t.test(props ~ cond, pdat2, !cond%in%"2_2_On2"&!sub%in%no2sub, paired = TRUE)
 
 # Mixed Models ------------------------------------------------------------
-  library(lme4)
-  library(lmerTest)
-
-  # Get data
-  mixed.dat <- subset(fsac, condmm %in% coi)
-    mixed.dat$condmm <- factor(mixed.dat$condmm)
-      mixed.dat$condmm <-relevel(mixed.dat$condmm, "2_2_On1")
-
-  # Fit models   --Not sure if need random slopes or not..
-  slat.mm <- lmer(slat ~ condmm+ (condmm|sub), mixed.dat)
-    summary(slat.mm)
-
-  amp.mm <- lmer(samp ~ condmm + (condmm|sub), mixed.dat)
-    summary(amp.mm)
-
-  fixdur.mm <- lmer(fixdur ~ condmm + (condmm|sub), mixed.dat)
-    summary(fixdur.mm)
+#   library(lme4)
+#   library(lmerTest)
+# 
+#   # Get data
+#   mixed.dat <- subset(fsac, condmm %in% coi)
+#     mixed.dat$condmm <- factor(mixed.dat$condmm)
+#       mixed.dat$condmm <-relevel(mixed.dat$condmm, "2_2_On1")
+# 
+#   # Fit models   --Not sure if need random slopes or not..
+#   slat.mm <- lmer(slat ~ condmm+ (condmm|sub), mixed.dat)
+#     summary(slat.mm)
+# 
+#   amp.mm <- lmer(samp ~ condmm + (condmm|sub), mixed.dat)
+#     summary(amp.mm)
+# 
+#   fixdur.mm <- lmer(fixdur ~ condmm + (condmm|sub), mixed.dat)
+#     summary(fixdur.mm)
 
 
 # Plot it! ----------------------------------------------------------------
 
-# Shared Pvals
+# Various Themes
 ptheme <- theme(axis.text.x = element_text(angle=-45, hjust=0, size=12,
                                            color="black"),
                 axis.title.x = element_blank())
@@ -240,12 +240,24 @@ powerpoint <- theme(legend.position = c(1, 1),
                    #axis.text.x = element_text(angle=-45, hjust=0),
                    axis.title.x = element_blank())
 
+apa.theme <- theme(panel.grid.major = element_blank(),
+                   panel.grid.minor = element_blank(),
+                   panel.background = element_blank(),
+                   axis.line = element_line(colour = "black"),
+                   legend.title=element_blank(),
+                   legend.position="none",
+                   axis.title = element_text(size = 12),
+                   axis.title.y = element_text(vjust = 1),
+                   axis.text = element_text(size = 10),
+                   axis.ticks.x = element_blank() )
 
+# Shared Plot construction
+dcolors <- c("#4daf4a", "#984ea3", "#377eb8")
 pvals <- list(
-  stat_summary(fun.y=mean, geom="bar", position="dodge", fill="#99CCFF"),
+  stat_summary(fun.y=mean, geom="bar"),
   stat_summary(fun.data=mean_cl_normal, geom="linerange"),
-  #scale_x_discrete(labels=c("Sim->Target", "Dis->Target", "Dis->Dis")),
-  powerpoint )
+  scale_x_discrete("",labels=c("Sim->Sim", "Dis->Dis", "Dis->Sim")),
+  scale_fill_manual(values=dcolors))
 
 # Diagnostic Plot
 pcount <- subset(sub.ln, cond %in% coi)
@@ -271,25 +283,35 @@ ggplot(pdat2, aes(cond, props, fill=onsets)) + labs(title="2nd Saccades")+
   pvals
 
 # Eye DVs
-slat.plot <- ggplot(sdat, aes(cond, slat))+
+coi.pdat <- subset(sub.lvl, cond %in% coi)
+  coi.pdat$cond <- factor(coi.pdat$cond, c("2_2_On1", "3_3_On1", "3_2_On1"))
+
+slat.plot <- ggplot(coi.pdat, aes(cond, slat, fill=cond))+
                     ylab("Saccade Latency (ms)")+
-                    coord_cartesian(ylim=c(170, 275))+
+                    coord_cartesian(ylim=c(200, 275))+
+                    scale_y_continuous(breaks=seq(200,275,10))+
                     #annotate("text", 2, 270, label="*", size=24)+
                     #annotate("segment", x=1, xend=3, y=269, yend=269, size=1.5)+      
-                    pvals
+                    pvals+
+                    apa.theme
 
-amp.plot <- ggplot(sdat, aes(cond, samp))+
+amp.plot <- ggplot(coi.pdat, aes(cond, samp, fill=cond))+
                   ylab("Saccade Amplitude (deg)")+
-                  coord_cartesian(ylim=c(3, 5.1))+
-                  pvals#+
+                  coord_cartesian(ylim=c(3.75, 5))+
+                  scale_y_continuous(breaks=seq(3.75, 5, .2))+
+                  pvals+
+                  apa.theme
                   #theme(legend.position = c(-1,-1))+
                   #annotate("segment", x=c(.9, 2.5, 2.5), xend=c(2.5, 2.5, 4.1),
                   #         y=c(4.9, 4.9, 4.6), yend=c(4.9, 4.6, 4.6), size=1.5)+      
                   #annotate("text", 2.5, 4.95, label="*", size=24)
 
-fix.plot  <- ggplot(sdat, aes(cond, fixdur))+
+fix.plot  <- ggplot(coi.pdat, aes(cond, fixdur, fill=cond))+
                     ylab("Fixation Duration (ms)")+
-                    pvals#+
+                    coord_cartesian(ylim=c(50, 225))+
+                    scale_y_continuous(breaks=seq(50, 225, 20))+
+                    pvals+
+                    apa.theme
 #                     theme(legend.position = c(-1,-1))+
 #                     annotate("text", 3.4, 175, label="*", size=24)+
 #                     annotate("text", 2.7, 200, label="*", size=24, alpha=.4)+
@@ -315,12 +337,12 @@ ggplot(subset(sub.lvl, cond=="2_1_Distractor"), aes(tnum, samp))+
   geom_point()+
   geom_smooth(method=lm)
 
-kPsize <- 20
-ggsave("figs/joy/lat.png", slat.plot, height=kPsize, width=kPsize, units="cm",
-       dpi = 72)
-ggsave("figs/joy/amp.png", amp.plot, height = kPsize, width = kPsize,
-       units = "cm",
-       dpi = 72)
-ggsave("figs/joy/fix.png", fix.plot, height = kPsize, width = kPsize,
-       units = "cm",
-       dpi = 72)
+kPsize <- 3
+ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="in",
+       dpi = 600)
+ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize,
+       units = "in",
+       dpi = 600)
+ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
+       units = "in",
+       dpi = 600)

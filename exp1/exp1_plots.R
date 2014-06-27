@@ -32,9 +32,9 @@ sdf <- read.csv("svm1_1sac_dat.txt", header = T)
     sdest[endia==2] = "Target"
   }) 
 
-acc.dat <- read.csv("svm1_acc_dat.txt", header = TRUE)
-
-sdf <- left_join(sdf, acc.dat, by=c("sub", "ttype", "endia"))
+# acc.dat <- read.csv("svm1_acc_dat.txt", header = TRUE)
+# 
+# sdf <- left_join(sdf, acc.dat, by=c("sub", "ttype", "endia"))
 
 # Paper stats -------------------------------------------------------------
 
@@ -42,29 +42,29 @@ sdf <- left_join(sdf, acc.dat, by=c("sub", "ttype", "endia"))
 # t.test(rt ~ dtype, sdf, dtype!="Similar"&endia==3&sub!="10_tn", paired=TRUE)
 # t.test(cor.y ~ dtype, sdf, dtype!="Similar"&endia==3&sub!="10_tn", paired=TRUE)
 
-# Behavoir tests
-t.test(rt ~ dtype, sdf, endia==3, paired=TRUE)
-t.test(cor.y ~ dtype, sdf, endia==3, paired=TRUE)
+# # Behavoir tests
+# t.test(rt ~ dtype, sdf, endia==3, paired=TRUE)
+# t.test(cor.y ~ dtype, sdf, endia==3, paired=TRUE)
 
 # Plot --------------------------------------------------------------------
 
 # Set-up shared plot theme
-nogrid <- theme(panel.grid.major = element_blank(),
-                panel.grid.minor = element_blank(),
-                panel.background = element_blank(),
-                axis.line = element_line(colour = "black"),
-                legend.title=element_blank()
-                )
-
-poster.theme <- theme(legend.title=element_blank(),
-                    legend.position = c(0, 1),
-                    legend.justification = c(0, 1),
-                    legend.text = element_text(size = 18),
-                    axis.text = element_text(size = 24),
-                    axis.title = element_text(size = 32),
-                    axis.title.y = element_text(vjust = 0.3),
-                    axis.title.x = element_text(vjust = 0.3)
-                    )
+# nogrid <- theme(panel.grid.major = element_blank(),
+#                 panel.grid.minor = element_blank(),
+#                 panel.background = element_blank(),
+#                 axis.line = element_line(colour = "black"),
+#                 legend.title=element_blank()
+#                 )
+# 
+# poster.theme <- theme(legend.title=element_blank(),
+#                     legend.position = c(0, 1),
+#                     legend.justification = c(0, 1),
+#                     legend.text = element_text(size = 18),
+#                     axis.text = element_text(size = 24),
+#                     axis.title = element_text(size = 32),
+#                     axis.title.y = element_text(vjust = 0.3),
+#                     axis.title.x = element_text(vjust = 0.3)
+#                     )
 
 apa.theme <- theme(panel.grid.major = element_blank(),
                    panel.grid.minor = element_blank(),
@@ -73,10 +73,11 @@ apa.theme <- theme(panel.grid.major = element_blank(),
                    legend.title=element_blank(),
                    axis.title = element_text(size = 12),
                    axis.title.y = element_text(vjust = 1),
-                   axis.text = element_text(size = 10) )
+                   axis.text = element_text(size = 10),
+                   axis.ticks.x = element_blank() )
 
 # Set up shared Plot Values for DV means
-dcolors <- c("#bebada", "#8dd3c7")
+dcolors <- c("#984ea3", "#4daf4a")
 pvals <- list(xlab("Distractor Type"),
               stat_summary(fun.y=mean, geom="bar"),
               stat_summary(fun.data = mean_cl_normal, geom = "linerange",
@@ -90,20 +91,20 @@ pdat <- subset(sdf, sdest=="Distractor")
 # Make Plots
 latplot <- ggplot(pdat, aes(dtype, slat, fill=dtype))+
                   ylab("Saccade Latency (ms)")+
-                  coord_cartesian(ylim=c(210, 275))+
-                  scale_y_continuous(breaks=seq(220,275,10))+
+                  coord_cartesian(ylim=c(200, 275))+
+                  scale_y_continuous(breaks=seq(200,275,10))+
                   pvals
 
 ampplot <- ggplot(pdat,aes(dtype, samp, fill=dtype))+
                   ylab("Saccade Amplitude (Degs)")+
-                  coord_cartesian(ylim=c(3.8, 5))+
-                  scale_y_continuous(breaks=seq(3.9, 5, .2))+
+                  coord_cartesian(ylim=c(3.75, 5))+
+                  scale_y_continuous(breaks=seq(3.75, 5, .2))+
                   pvals
 
 fixplot <- ggplot(pdat, aes(dtype, fixdur, fill=dtype))+
                   ylab("Fixation Duration (ms)")+
-                  coord_cartesian(ylim=c(50, 200))+
-                  scale_y_continuous(breaks=seq(50, 200, 20))+
+                  coord_cartesian(ylim=c(50, 225))+
+                  scale_y_continuous(breaks=seq(50, 225, 20))+
                   pvals
 
 rtplot  <- ggplot(sdf,aes(sdest,rt,fill=dtype))+
@@ -174,33 +175,33 @@ ggsave("figs/classacc_paper.tiff", cplot, height = 3, width = 3, units = "in",
 
 # Saccade Proportion Plot -------------------------------------------------
   
-# Load Data
-spd <- read.csv("svm1_prop_dat.txt", header=T)
-  # Make Text Vectors
-  spd$dtype <- NA
-  spd$sdest <- NA
-  spd <- within(spd,{
-    dtype[ttype==1] = "Dissimilar"
-    dtype[ttype==2] = "Similar"
-    sdest[endia==3] = "Distractor"
-    sdest[endia==2] = "Target"
-  })
-
-# Find group means
-sp.mn <- spd %>%
-          group_by(ttype, endia) %>%
-          summarise(
-            props = mean(props))
-
-# Stats
-spt  <- t.test(props ~ dtype, spd, endia==3, paired = TRUE)
-dist <- t.test(spd$props[spd$endia==3&spd$dtype=="Dissimilar"])
-simt <- t.test(spd$props[spd$endia==3&spd$dtype=="Similar"])
-
-# Make Plot
-prplot <- ggplot(spd, aes(sdest, props, fill=dtype))+
-                 ylab("Proportion of First Saccade")+
-                 pvals
-
-#Display and Save
-prplot
+# # Load Data
+# spd <- read.csv("svm1_prop_dat.txt", header=T)
+#   # Make Text Vectors
+#   spd$dtype <- NA
+#   spd$sdest <- NA
+#   spd <- within(spd,{
+#     dtype[ttype==1] = "Dissimilar"
+#     dtype[ttype==2] = "Similar"
+#     sdest[endia==3] = "Distractor"
+#     sdest[endia==2] = "Target"
+#   })
+# 
+# # Find group means
+# sp.mn <- spd %>%
+#           group_by(ttype, endia) %>%
+#           summarise(
+#             props = mean(props))
+# 
+# # Stats
+# spt  <- t.test(props ~ dtype, spd, endia==3, paired = TRUE)
+# dist <- t.test(spd$props[spd$endia==3&spd$dtype=="Dissimilar"])
+# simt <- t.test(spd$props[spd$endia==3&spd$dtype=="Similar"])
+# 
+# # Make Plot
+# prplot <- ggplot(spd, aes(sdest, props, fill=dtype))+
+#                  ylab("Proportion of First Saccade")+
+#                  pvals
+# 
+# #Display and Save
+# prplot
