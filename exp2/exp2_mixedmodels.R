@@ -120,27 +120,27 @@ sdat <- aggregate(cbind(slat,samp,fixdur) ~ dtype+soa+sub, FUN=mean, sdf)
   dcolors <- c("#984ea3", "#4daf4a")
   pvals <- list(scale_x_continuous(labels=c("-100", "-68", "-33", "0"),
                                    name="Distractor/Target SOA (ms)"),
-                stat_summary(fun.y=mean, geom="line", size=.5),
-                 stat_summary(fun.data=mean_cl_normal, geom="pointrange",
-                              size = 1),
+                stat_summary(fun.y=mean, geom="line", size=.7),
+                stat_summary(fun.data=mean_cl_normal, geom="pointrange",
+                              size=.7),
                 scale_color_manual(values=dcolors) )
 
 # Make Plots
-lat.plot <- ggplot(sdat, aes(soa, slat, shape=dtype, color=dtype))+
+lat.plot <- ggplot(sdat, aes(soa, slat, color=dtype))+
                   ylab("Saccade Latency (ms)")+
                   coord_cartesian(ylim=c(200, 275))+
                   scale_y_continuous(breaks=seq(200,275,10))+
                   pvals+
                   apa.theme
 
-amp.plot <- ggplot(sdat, aes(soa, samp, shape=dtype, color=dtype))+
+amp.plot <- ggplot(sdat, aes(soa, samp, color=dtype))+
                   ylab("Saccade Amplitude (deg)")+
                   coord_cartesian(ylim=c(3.75, 5))+
                   scale_y_continuous(breaks=seq(3.75, 5, .2))+
                   pvals+
                   apa.theme
 
-fix.plot <- ggplot(sdat, aes(soa, fixdur, shape=dtype, color=dtype))+
+fix.plot <- ggplot(sdat, aes(soa, fixdur, color=dtype))+
                   ylab("Fixation Duration (ms)")+
                   coord_cartesian(ylim=c(50, 225))+
                   scale_y_continuous(breaks=seq(50, 225, 20))+
@@ -251,11 +251,12 @@ pmeans <- sprop %>%
 # plot
 # ggplot(pmeans, aes(soa, mpro, group=dtype, color=dtype)) + geom_line()
 
-pro.plot <- ggplot(sprop, aes(soa, props, shape=dtype, color=dtype))+
+pro.plot <- ggplot(sprop, aes(soa, props, color=dtype))+
               ylab("Proportion of Capture")+
               scale_y_continuous(breaks=seq(0,.9,.1))+
               pvals+
               apa.theme
+              #theme(legend.position="bottom")
 
 ggsave("figs/props.tiff", pro.plot, height = kPsize, width = kPsize, units = "in",
        dpi = 600)
