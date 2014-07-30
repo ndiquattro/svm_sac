@@ -116,6 +116,15 @@ sub.lvl <- fsac %.%
               tnum   = n()) %.%
             mutate(cond = paste(on1,on2,endia, sep="_"))
 
+sub.lvl2 <- sac2 %.%
+  group_by(on1, on2, endia, soa, sub) %.%
+  summarise(
+    slat   = mean(slat),
+    samp   = mean(samp),
+    fixdur = mean(fixdur, na.rm=TRUE),
+    tnum   = n()) %.%
+  mutate(cond = paste(on1,on2,endia, sep="_"))
+
 # Find 2nd saccade proportions
 num2 <- aggregate(slat ~ on1 + on2 + endia + sub + soa, sac2, length)
   num2$cond <- paste(num2$on1, num2$on2, num2$endia, sep="_")
@@ -133,6 +142,7 @@ den2 <- aggregate(slat ~ on1 + on2 + sub, sac2, length)
   
 # Subset for Stats
 coi <- c("3_2_On1", "3_3_On1", "2_2_On1")
+coi2 <- c("3_2_On2", "3_3_On2", "2_2_On2")
 sdat <- subset(sub.acc, cond %in% coi)
 pdat <- subset(num, cond %in% coi)
 pdat2 <- subset(num2, cond == "3_2_On2" | cond == "3_3_On2" |
@@ -326,6 +336,12 @@ slat.plot
 amp.plot
 fix.plot
 
+# 2nd sacs
+ggplot(subset(sub.lvl2, cond %in% coi2), aes(cond, samp, fill=cond))+pvals+
+  coord_cartesian(ylim=c(9.5, 11))
+ggplot(subset(sub.lvl2, cond %in% coi2), aes(cond, tnum, fill=cond))+
+  geom_boxplot()
+
 
 # Try out density plot!
 den.dat <- subset(fsac, soa == "0ms" & on1 <3)
@@ -337,12 +353,12 @@ ggplot(subset(sub.lvl, cond=="2_1_Distractor"), aes(tnum, samp))+
   geom_point()+
   geom_smooth(method=lm)
 
-kPsize <- 3
-ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="in",
-       dpi = 600)
-ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize,
-       units = "in",
-       dpi = 600)
-ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
-       units = "in",
-       dpi = 600)
+# kPsize <- 3
+# ggsave("figs/lat.tiff", slat.plot, height=kPsize, width=kPsize, units="in",
+#        dpi = 600)
+# ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize,
+#        units = "in",
+#        dpi = 600)
+# ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize,
+#        units = "in",
+#        dpi = 600)
