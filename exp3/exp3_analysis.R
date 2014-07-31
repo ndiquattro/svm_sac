@@ -25,12 +25,12 @@ library(dplyr)
 
 # Load Data ---------------------------------------------------------------
 
-dat <- read.csv("svm_5_dat.txt", header = TRUE, na.strings = c(".", "NA"),
+dat <- read.csv("svm_5_dat2.txt", header = TRUE, na.strings = c(".", "NA"),
                 stringsAsFactors = FALSE, strip.white = TRUE, 
                 col.names = c("sub", "tnum", "pupil", "on1", "on2", "soa",
                               "tloc", "dcol", "tcol", "cor", "rt", "sidx",
                               "endia", "stia", "samp", "slat", "fixdur",
-                              "pendia", "pstia"))
+                              "pendia", "pstia", "nendia"))
 
 # Clean up data
 dat$condmm <- NA
@@ -108,13 +108,24 @@ den <- aggregate(slat ~ on1 + on2 + sub, fsac, length)
 
 # Get sub level means with dplyr
 sub.lvl <- fsac %.%
-            group_by(on1, on2, endia, soa, sub) %.%
+            group_by(on1, on2, endia, soa, nendia, sub) %.%
             summarise(
               slat   = mean(slat),
               samp   = mean(samp),
               fixdur = mean(fixdur, na.rm=TRUE),
               tnum   = n()) %.%
             mutate(cond = paste(on1,on2,endia, sep="_"))
+
+ggplot(subset(sub.lvl, cond == "3_3_On1"), aes(nendia, fixdur, fill=nendia))+
+  stat_summary(fun.y=mean, geom="bar")+
+  stat_summary(fun.data=mean_cl_normal, geom="linerange")
+
+grp <- sub.lvl %>%
+        summarise(
+          samp = mean(samp),
+          cond = unique(cond),
+          tnum = mean(tnum) )%>%
+        filter(cond == "3_3_On1")
 
 sub.lvl2 <- sac2 %.%
   group_by(on1, on2, endia, soa, sub) %.%
