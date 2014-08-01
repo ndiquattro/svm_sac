@@ -116,7 +116,7 @@ sub.lvl <- fsac %.%
               tnum   = n()) %.%
             mutate(cond = paste(on1,on2,endia, sep="_"))
 
-ggplot(subset(sub.lvl, cond == "3_3_On1"), aes(nendia, fixdur, fill=nendia))+
+ggplot(subset(sub.lvl, cond == "3_3_On1"), aes(nendia, samp, fill=nendia))+
   stat_summary(fun.y=mean, geom="bar")+
   stat_summary(fun.data=mean_cl_normal, geom="linerange")
 
