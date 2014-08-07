@@ -20,31 +20,28 @@ library(ggplot2)
 library(dplyr)
 
 # Load Data ---------------------------------------------------------------
+soast = c("-100ms", "-68ms", "-33ms", "0ms")
+dtypest = c("Similar", "Dissimilar")
+nendiast = c("Fixation", "Target", "Distractor")
 
-sdf <- read.csv("svm3_1sac_dat.txt", header = T)
-  # Make Text Vectors
-  sdf$dtype[sdf$ttype==1] <- "Similar"
-  sdf$dtype[sdf$ttype==2] <- "Dissimilar"
-
-# Define factors as factors and center SOA to -103ms
-sdf <- within(sdf,{
-              dtype = factor(dtype, levels=c("Dissimilar","Similar"))
-              sub = factor(sub)
-              soa = soa - 1
-})
-
-# Outlier Removal
-sdf <- subset(sdf, samp<7)  # Remove trials with weird amplitdues
-
+sdf <- read.csv("svm3_1sac_dat2.txt", header = T) %>%
+        mutate(
+          dtype = dtypest[ttype],
+          soast = soast[soa],
+          soa = soa - 1,
+          nendia = nendiast[nendia],
+          nendia = ifelse(is.na(nendia), "NoSac2", nendia) ) %>%
+        filter(samp < 7) # Remove trials with weird amplitdues
 
 # Behavioral Stats --------------------------------------------------------
 
 # # Calculate means
-# bdat <- sdf %>%
-#           group_by(dtype, soa, sub) %>%
-#           summarise(
-#             acc = mean(cor, na.rm = TRUE),
-#             rt = mean(rt[cor==1], na.rm = TRUE) )
+bdat <- sdf %>%
+          group_by(dtype, soast, sub) %>%
+          summarise(
+            acc = mean(cor, na.rm = TRUE),
+            rt = mean(rt[cor==1], na.rm = TRUE) )
+          
 # 
 # obdat <- summarise(bdat,
 #                    acc = mean(acc),
@@ -55,10 +52,10 @@ sdf <- subset(sdf, samp<7)  # Remove trials with weird amplitdues
 # 
 # bdat <- as.data.frame(bdat)
 # 
-# # plot it to check it out
-# ggplot(bdat, aes(soa, acc, color=dtype)) + 
-#         stat_summary(fun.y=mean, geom="line", size = 2) +
-#         stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size=2)
+# plot it to check it out
+ggplot(bdat, aes(soast, acc, color=dtype, group=dtype)) + 
+        stat_summary(fun.y=mean, geom="line", size = 2) +
+        stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size=2)
 # 
 # # Accuracy
 #   # mixed model
@@ -80,12 +77,13 @@ sdf <- subset(sdf, samp<7)  # Remove trials with weird amplitdues
 
 # Summary Stats for Eye Data ----------------------------------------------
 
-# Remove incorrect trials
-sdf <- subset(sdf, cor==1)
-
-# Find means
-sdat <- aggregate(cbind(slat,samp,fixdur) ~ dtype+soa+sub, FUN=mean, sdf)
-# gdat <- aggregate(cbind(slat,samp,fixdur) ~ dtype+soa, FUN=mean, sdat)
+sdat <- sdf %>%
+          filter(cor == 1) %>%
+          group_by(dtype, soast, sub) %>%
+          summarise(
+            slat   = mean(slat),
+            samp   = mean(samp),
+            fixdur = mean(fixdur, na.rm=TRUE) )
 
 # Shared Plot Values
   # Theme Creation
@@ -157,13 +155,13 @@ fix.plot
 #                   geom_density()+
 #                   facet_wrap(~soa)
 
-kPsize <- 3
-ggsave("figs/lat.tiff", lat.plot, height = kPsize, width = kPsize, units = "in",
-       dpi = 600)
-ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize, units = "in",
-       dpi = 600)
-ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize, units = "in",
-       dpi = 600)
+# kPsize <- 3
+# ggsave("figs/lat.tiff", lat.plot, height = kPsize, width = kPsize, units = "in",
+#        dpi = 600)
+# ggsave("figs/amp.tiff", amp.plot, height = kPsize, width = kPsize, units = "in",
+#        dpi = 600)
+# ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize, units = "in",
+#        dpi = 600)
 
 # kPsize <- 6
 # ggsave("figs/lat_small.tiff", lat.plot, height = kPsize, width = kPsize, units = "in",
@@ -226,43 +224,74 @@ ggsave("figs/fix.tiff", fix.plot, height = kPsize, width = kPsize, units = "in",
 #     geom_hline(yintercept=0)
 
 
+# Second saccade stuff ----------------------------------------------------
+
+dat2 <- sdf %>%
+          filter(cor == 1, endia == 3) %>%
+          group_by(dtype, soast, nendia, sub) %>%
+          summarise(
+            slat = mean(slat),
+            samp = mean(samp),
+            fix  = mean(fixdur, na.rm=TRUE),
+            tnum = n()) %>%
+          filter(nendia != "Distractor") %>%
+          filter(nendia != "Fixation")
+
+ggplot(dat2, aes(soast, slat, color=dtype))+
+  stat_summary(fun.data=mean_cl_normal, geom="pointrange", size=1)+
+  facet_wrap(~nendia)
+
+fmod <- lmer(fixdur ~ ttype*soa + (ttype*soa|sub), dat2)
+summary(fmod)
+
 # Saccade Proportion Data -------------------------------------------------
 
 # Load Data
-sprop <- read.csv("svm3_sacprop_dat.txt", header=TRUE, stringsAsFactors=FALSE)
-  # Make Text Vectors
-  sprop$dtype[sprop$ttype==1] <- "Similar"
-  sprop$dtype[sprop$ttype==2] <- "Dissimilar"
-
-# Set data up
-sprop <- within(sprop, {
-                  dtype = factor(dtype, levels=c("Dissimilar", "Similar"))
-                  #soa = factor(soa)
-                  sub = factor(sub)
-                  }
-                )
+soast = c("-100ms", "-68ms", "-33ms", "0ms")
+dtypest = c("Similar", "Dissimilar")
+sprop <- read.csv("svm3_sacprop_dat.txt", header=TRUE,
+                  stringsAsFactors=FALSE) %>%
+          mutate(
+            dtype = dtypest[ttype],
+            soast = soast[soa],
+            soa = soa - 1)
 
 # Find means
 pmeans <- sprop %>%
-            group_by(dtype, soa) %>%
+            group_by(dtype, soa, endia) %>%
             summarise(
               mpro = mean(props))
 
 # plot
-# ggplot(pmeans, aes(soa, mpro, group=dtype, color=dtype)) + geom_line()
+ggplot(pmeans, aes(soa, mpro, group=dtype, color=dtype)) + geom_line()
 
-pro.plot <- ggplot(sprop, aes(soa, props, color=dtype))+
-              ylab("Proportion of Capture")+
-              scale_y_continuous(breaks=seq(0,.9,.1))+
-              pvals+
-              apa.theme
-              #theme(legend.position="bottom")
+ggplot(sprop[sprop$endia==2,], aes(soa, props, color=dtype))+
+  ylab("Proportion of Capture")+
+ # scale_y_continuous(breaks=seq(0,1,.1))+
+  pvals+
+  facet_wrap(~endia)
+ # apa.theme
+  #theme(legend.position="bottom")
 
-ggsave("figs/props.tiff", pro.plot, height = kPsize, width = kPsize, units = "in",
-       dpi = 600)
+# ggsave("figs/props.tiff", pro.plot, height = kPsize, width = kPsize, units = "in",
+#        dpi = 600)
 
 # # Try stats
 # prop.mod <- lmer(props ~ dtype*soa + (dtype*soa|sub), sprop)
 # 
 # # RM ANOVA
 # prop.aov <- aov(props ~ dtype*soa + Error(sub / (dtype*soa)), sprop)
+
+# Correlation with eye mets
+cordat <- left_join(sprop, sdat, by=c("sub", "dtype", "soast")) %>%
+          select(sub, dtype, soast, props, slat, samp, fixdur) %>%
+          mutate(
+            soast = factor(soast, c("-100ms", "-68ms", "-33ms", "0ms")))
+
+# Scatter plots with fits
+ggplot(cordat, aes(samp, fixdur)) +
+  geom_point()+
+  geom_smooth(method=lm)+
+  facet_grid(dtype ~ soast)
+
+cor.test(~fixdur + samp, cordat)
