@@ -15,7 +15,9 @@ if (Sys.info()['sysname'] == "Darwin") {
 
 # Load Libraries
 library(ggplot2)
+library(grid)
 library(dplyr)
+library(quatts)
 
 # Mean DV Plots --------------------------------------------------------------
 
@@ -32,19 +34,24 @@ sdf <- read.csv("svm1_1sac_dat.txt", header = T)
     sdest[endia==2] = "Target"
   }) 
 
-# acc.dat <- read.csv("svm1_acc_dat.txt", header = TRUE)
+ acc.dat <- read.csv("svm1_acc_dat.txt", header = TRUE)
 # 
-# sdf <- left_join(sdf, acc.dat, by=c("sub", "ttype", "endia"))
+ sdf <- left_join(sdf, acc.dat, by=c("sub", "ttype", "endia"))
 
 # Paper stats -------------------------------------------------------------
 
 # Dissimilar t-tests
 # t.test(rt ~ dtype, sdf, dtype!="Similar"&endia==3&sub!="10_tn", paired=TRUE)
+
 # t.test(cor.y ~ dtype, sdf, dtype!="Similar"&endia==3&sub!="10_tn", paired=TRUE)
 
 # # Behavoir tests
-# t.test(rt ~ dtype, sdf, endia==3, paired=TRUE)
-# t.test(cor.y ~ dtype, sdf, endia==3, paired=TRUE)
+ rt.t <- t.test(rt ~ dtype, sdf, endia==3, paired=TRUE)
+    cod.rt <- cohend(rt.t)
+
+
+
+cohend(t.test(cor.y ~ dtype, sdf, endia==3, paired=TRUE))
 
 # Plot --------------------------------------------------------------------
 
@@ -76,6 +83,22 @@ apa.theme <- theme(panel.grid.major = element_blank(),
                    axis.text = element_text(size = 10),
                    axis.ticks.x = element_blank() )
 
+theme_grant <- theme(
+  text = element_text(size=6),
+  legend.position = c(1, 1),
+  legend.justification = c(.75, .75),
+  legend.margin = unit(0, "points"),
+  legend.key.height = unit(5, "points"),
+  legend.key.width = unit(5, "points"),
+  legend.background = element_blank(),
+  legend.key = element_blank(),
+  plot.margin = unit(c(2, 2, 0, 0), "points"),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  panel.background = element_blank(),
+  axis.line = element_line(colour = "black")
+)
+
 # Set up shared Plot Values for DV means
 dcolors <- c("#984ea3", "#4daf4a")
 pvals <- list(xlab("Distractor Type"),
@@ -83,7 +106,7 @@ pvals <- list(xlab("Distractor Type"),
               stat_summary(fun.data = mean_cl_normal, geom = "linerange",
                            show_guide=FALSE),
               scale_fill_manual(values=dcolors, guide=FALSE),
-              apa.theme)
+              theme_grant)
 
 # Subset data
 pdat <- subset(sdf, sdest=="Distractor")
@@ -100,6 +123,8 @@ ampplot <- ggplot(pdat,aes(dtype, samp, fill=dtype))+
                   coord_cartesian(ylim=c(3.75, 5))+
                   scale_y_continuous(breaks=seq(3.75, 5, .2))+
                   pvals
+
+ggsave("figs/amp_grant.png", ampplot, width = 2, height = 2)
 
 fixplot <- ggplot(pdat, aes(dtype, fixdur, fill=dtype))+
                   ylab("Fixation Duration (ms)")+
@@ -175,33 +200,34 @@ ggsave("figs/classacc_paper.tiff", cplot, height = 3, width = 3, units = "in",
 
 # Saccade Proportion Plot -------------------------------------------------
   
-# # Load Data
-# spd <- read.csv("svm1_prop_dat.txt", header=T)
-#   # Make Text Vectors
-#   spd$dtype <- NA
-#   spd$sdest <- NA
-#   spd <- within(spd,{
-#     dtype[ttype==1] = "Dissimilar"
-#     dtype[ttype==2] = "Similar"
-#     sdest[endia==3] = "Distractor"
-#     sdest[endia==2] = "Target"
-#   })
-# 
-# # Find group means
-# sp.mn <- spd %>%
-#           group_by(ttype, endia) %>%
-#           summarise(
-#             props = mean(props))
-# 
-# # Stats
-# spt  <- t.test(props ~ dtype, spd, endia==3, paired = TRUE)
-# dist <- t.test(spd$props[spd$endia==3&spd$dtype=="Dissimilar"])
-# simt <- t.test(spd$props[spd$endia==3&spd$dtype=="Similar"])
-# 
-# # Make Plot
-# prplot <- ggplot(spd, aes(sdest, props, fill=dtype))+
-#                  ylab("Proportion of First Saccade")+
-#                  pvals
-# 
-# #Display and Save
-# prplot
+# Load Data
+spd <- read.csv("svm1_prop_dat.txt", header=T)
+  # Make Text Vectors
+  spd$dtype <- NA
+  spd$sdest <- NA
+  spd <- within(spd,{
+    dtype[ttype==1] = "Dissimilar"
+    dtype[ttype==2] = "Similar"
+    sdest[endia==3] = "Distractor"
+    sdest[endia==2] = "Target"
+  })
+
+# Find group means
+sp.mn <- spd %>%
+          group_by(ttype, endia) %>%
+          summarise(
+            props = mean(props))
+
+# Stats
+spt  <- t.test(props ~ dtype, spd, endia==3, paired = TRUE)
+  cohend(spt)
+dist <- t.test(spd$props[spd$endia==3&spd$dtype=="Dissimilar"])
+simt <- t.test(spd$props[spd$endia==3&spd$dtype=="Similar"])
+
+# Make Plot
+prplot <- ggplot(spd, aes(sdest, props, fill=dtype))+
+                 ylab("Proportion of First Saccade")+
+                 pvals
+
+#Display and Save
+prplot

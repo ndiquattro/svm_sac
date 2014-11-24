@@ -64,15 +64,19 @@ ggplot(bdat, aes(soast, acc, color=dtype, group=dtype)) +
 #     acc.aov <- anova(acc.mod)
 # 
 #   # Normal RM ANOVA
-#   bdat$soaF <- as.factor(bdat$soa)  # make factor vector
+   bdat$soaF <- as.factor(bdat$soa)  # make factor vector
 # 
-#   acc.aovrm <- aov(acc ~ dtype*soaF + Error(sub/(dtype*soaF)), bdat)
-#   acc.aovrm.sum <- summary(acc.aovrm)
+   acc.aovrm <- aov(acc ~ dtype*soaF + Error(sub/(dtype*soaF)), bdat)
+   acc.aovrm.sum <- summary(acc.aovrm)
+    paretasq(acc.aovrm.sum)
 # 
 # # Reaction Time
 #   # RM ANOVA
-#   rt.aovrm <- aov(rt ~ dtype*soaF + Error(sub/(dtype*soaF)), bdat)
-#     rt.aov.rm.sum <- summary(rt.aovrm)
+  rt.aovrm <- aov(rt ~ dtype*soaF + Error(sub/(dtype*soaF)), bdat)
+    rt.aov.rm.sum <- summary(rt.aovrm)
+    paretasq(rt.aov.rm.sum)
+
+    
 
 
 # Summary Stats for Eye Data ----------------------------------------------
@@ -280,7 +284,9 @@ ggplot(sprop[sprop$endia==2,], aes(soa, props, color=dtype))+
 # prop.mod <- lmer(props ~ dtype*soa + (dtype*soa|sub), sprop)
 # 
 # # RM ANOVA
-# prop.aov <- aov(props ~ dtype*soa + Error(sub / (dtype*soa)), sprop)
+ prop.aov <- aov(props ~ dtype*factor(soa) + Error(sub / (dtype*factor(soa))), sprop)
+  paretasq(summary(prop.aov))
+
 
 # Correlation with eye mets
 cordat <- left_join(sprop, sdat, by=c("sub", "dtype", "soast")) %>%
