@@ -26,7 +26,7 @@ library(dplyr)
 # Load Data ---------------------------------------------------------------
 
 dat <- read.csv("svm_5_dat2.txt", header = TRUE, na.strings = c(".", "NA"),
-                stringsAsFactors = FALSE, strip.white = TRUE, 
+                stringsAsFactors = FALSE, strip.white = TRUE,
                 col.names = c("sub", "tnum", "pupil", "on1", "on2", "soa",
                               "tloc", "dcol", "tcol", "cor", "rt", "sidx",
                               "endia", "stia", "samp", "slat", "fixdur",
@@ -102,13 +102,13 @@ den <- aggregate(slat ~ on1 + on2 + sub, fsac, length)
   num$props = NA
   for (a in 1:dim(num)[1]) {
     num$props[a] = num[a, "slat"] / den[den$on1==num[a, "on1"] &
-                                    den$on2==num[a, "on2"]& 
+                                    den$on2==num[a, "on2"]&
                                     den$sub==num[a, "sub"], "slat"]
   }
 
 # Get sub level means with dplyr
 sub.lvl <- fsac %.%
-            group_by(on1, on2, endia, soa, nendia, sub) %.%
+            group_by(on1, on2, endia, soa, sub) %.%
             summarise(
               slat   = mean(slat),
               samp   = mean(samp),
@@ -116,7 +116,7 @@ sub.lvl <- fsac %.%
               tnum   = n()) %.%
             mutate(cond = paste(on1,on2,endia, sep="_"))
 
-ggplot(subset(sub.lvl, cond == "3_3_On1"), aes(nendia, fixdur, fill=nendia))+
+ggplot(subset(sub.lvl, cond == "3_3_On1"), aes(nendia, tnum, fill=nendia))+
   stat_summary(fun.y=mean, geom="bar")+
   stat_summary(fun.data=mean_cl_normal, geom="linerange")
 
@@ -146,34 +146,34 @@ den2 <- aggregate(slat ~ on1 + on2 + sub, sac2, length)
   num2$props = NA
   for (a in 1:dim(num2)[1]) {
     num2$props[a] = num2[a, "slat"] / den2[den2$on1==num2[a, "on1"] &
-                                        den2$on2==num2[a, "on2"]& 
+                                        den2$on2==num2[a, "on2"]&
                                         den2$sub==num2[a, "sub"], "slat"]
-}      
+}
 # Stats -------------------------------------------------------------------
-  
+
 # Subset for Stats
-coi <- c("3_2_On1", "3_3_On1", "2_2_On1")
+coi <- c("3_2_On1", "3_3_On1", "2_2_On1", "2_3_On1", "1_2_Target", "1_3_Target")
 coi2 <- c("3_2_On2", "3_3_On2", "2_2_On2")
 sdat <- subset(sub.acc, cond %in% coi)
 pdat <- subset(num, cond %in% coi)
 pdat2 <- subset(num2, cond == "3_2_On2" | cond == "3_3_On2" |
-                  cond=="2_2_On2")
+                      cond=="2_2_On2")
 
 # # Test for low tnum ##
 # lowsub = subset(sub.ln, cond=="3_1_Distractor" & slat < 10)
 # lowsubs = unique(lowsub$sub)
-# 
+#
 # sdat$lowt[ sdat$sub %in% lowsubs] = "Low"
 # sdat$lowt[!sdat$sub %in% lowsubs] = "High"
-# 
+#
 # test.dat <- subset(sdat, cond=="3_1_Distractor")
 #   t.test(slat ~ lowt, data=test.dat, var.equal=T)
 #   t.test(samp ~ lowt, data=test.dat, var.equal=T)
 #   t.test(fixdur ~ lowt, data=test.dat, var.equal=T)
-# 
+#
 # # Try out removing low subs from analysis
 # #sdat <- subset(sdat, lowt=="High")
-# 
+#
 # # Test for difference between Onset for 2_2 and 3_3
 # ondiff <- subset(sdat, (cond=="3_3_On1" | cond=="3_3_On2") & sub != "10_vv" )
 #   t.test(samp ~ endia, data=ondiff, paired=TRUE)
@@ -186,12 +186,12 @@ pdat2 <- subset(num2, cond == "3_2_On2" | cond == "3_3_On2" |
 #     summary(samp.mod)
 #   fix.mod <- aov(fixdur ~ cond + Error(sub/cond), sdat)
 #     summary(fix.mod)
-# 
+#
 #   # Post-hoc t-tests
 #   slat.t <- with(sdat, pairwise.t.test(slat, cond, "bon", paired=TRUE))
 #   amp.t <- with(sdat, pairwise.t.test(samp, cond, "bon", paired=TRUE))
 #   fix.t <- with(sdat, pairwise.t.test(fixdur, cond, "bon", paired=TRUE))
-# 
+#
 # # Ts
 # t.test(slat ~ cond, sdat, pair=TRUE)
 # t.test(samp ~ cond, sdat, pair=TRUE)
@@ -215,23 +215,23 @@ no2sub <-c("22_ew", "27_lp")  # subs with no 2nd sacs in 3_3_
 t.test(props ~ cond, pdat2, !cond%in%"2_2_On2"&!sub%in%no2sub, paired = TRUE)
 
 # Mixed Models ------------------------------------------------------------
-#   library(lme4)
-#   library(lmerTest)
-# 
-#   # Get data
-#   mixed.dat <- subset(fsac, condmm %in% coi)
-#     mixed.dat$condmm <- factor(mixed.dat$condmm)
-#       mixed.dat$condmm <-relevel(mixed.dat$condmm, "2_2_On1")
-# 
-#   # Fit models   --Not sure if need random slopes or not..
-#   slat.mm <- lmer(slat ~ condmm+ (condmm|sub), mixed.dat)
-#     summary(slat.mm)
-# 
-#   amp.mm <- lmer(samp ~ condmm + (condmm|sub), mixed.dat)
-#     summary(amp.mm)
-# 
-#   fixdur.mm <- lmer(fixdur ~ condmm + (condmm|sub), mixed.dat)
-#     summary(fixdur.mm)
+library(lme4)
+library(lmerTest)
+
+# Get data
+mixed.dat <- subset(fsac, condmm %in% coi)
+  mixed.dat$condmm <- factor(mixed.dat$condmm)
+    mixed.dat$condmm <-relevel(mixed.dat$condmm, "2_3_On1")
+
+# Fit models   --Not sure if need random slopes or not..
+slat.mm <- lmer(slat ~ condmm+ (condmm|sub), mixed.dat)
+  summary(slat.mm)
+
+amp.mm <- lmer(samp ~ condmm + (condmm|sub), mixed.dat)
+  summary(amp.mm)
+
+fixdur.mm <- lmer(fixdur ~ condmm + (condmm|sub), mixed.dat)
+  summary(fixdur.mm)
 
 
 # Plot it! ----------------------------------------------------------------
@@ -273,12 +273,13 @@ apa.theme <- theme(panel.grid.major = element_blank(),
                    axis.ticks.x = element_blank() )
 
 # Shared Plot construction
-dcolors <- c("#4daf4a", "#984ea3", "#377eb8")
+dcolors <- c("#4daf4a", "#984ea3", "#377eb8", "red")
 pvals <- list(
   stat_summary(fun.y=mean, geom="bar"),
   stat_summary(fun.data=mean_cl_normal, geom="linerange"),
-  scale_x_discrete("",labels=c("Sim->Sim", "Dis->Dis", "Dis->Sim")),
-  scale_fill_manual(values=dcolors))
+  scale_x_discrete("",labels=c("Sim->Sim", "Dis->Dis", "Dis->Sim", "Sim->Dis"))
+  #scale_fill_manual(values=dcolors)
+  )
 
 # Diagnostic Plot
 pcount <- subset(sub.ln, cond %in% coi)
@@ -298,21 +299,21 @@ spro.plot <- ggplot(coi.pro, aes(cond, props, fill=onsets))+
 
 # 2nd saccades proportion plot
 pdat2 <- subset(num2, cond == "3_2_On2" | cond == "3_3_On2" |
-                      cond=="2_2_On2")
+                      cond=="2_2_On2" | cond == "2_3_On1")
 ggplot(pdat2, aes(cond, props, fill=onsets)) + labs(title="2nd Saccades")+
   scale_y_continuous("Proportion of Saccades", breaks=seq(0,1,.1))+
   pvals
 
 # Eye DVs
 coi.pdat <- subset(sub.lvl, cond %in% coi)
-  coi.pdat$cond <- factor(coi.pdat$cond, c("2_2_On1", "3_3_On1", "3_2_On1"))
+  coi.pdat$cond <- factor(coi.pdat$cond, c("2_2_On1", "3_3_On1", "3_2_On1", "2_3_On1"))
 
 slat.plot <- ggplot(coi.pdat, aes(cond, slat, fill=cond))+
                     ylab("Saccade Latency (ms)")+
                     coord_cartesian(ylim=c(200, 275))+
                     scale_y_continuous(breaks=seq(200,275,10))+
                     #annotate("text", 2, 270, label="*", size=24)+
-                    #annotate("segment", x=1, xend=3, y=269, yend=269, size=1.5)+      
+                    #annotate("segment", x=1, xend=3, y=269, yend=269, size=1.5)+
                     pvals+
                     apa.theme
 
@@ -324,23 +325,25 @@ amp.plot <- ggplot(coi.pdat, aes(cond, samp, fill=cond))+
                   apa.theme
                   #theme(legend.position = c(-1,-1))+
                   #annotate("segment", x=c(.9, 2.5, 2.5), xend=c(2.5, 2.5, 4.1),
-                  #         y=c(4.9, 4.9, 4.6), yend=c(4.9, 4.6, 4.6), size=1.5)+      
+                  #         y=c(4.9, 4.9, 4.6), yend=c(4.9, 4.6, 4.6), size=1.5)+
                   #annotate("text", 2.5, 4.95, label="*", size=24)
 
 fix.plot  <- ggplot(coi.pdat, aes(cond, fixdur, fill=cond))+
                     ylab("Fixation Duration (ms)")+
-                    coord_cartesian(ylim=c(50, 225))+
-                    scale_y_continuous(breaks=seq(50, 225, 20))+
+                    coord_cartesian(ylim=c(50, 300))+
+                    scale_y_continuous(breaks=seq(50, 300, 20))+
                     pvals+
                     apa.theme
+
+ggplot(coi.pdat, aes(samp)) + geom_density() + facet_wrap(~cond)
 #                     theme(legend.position = c(-1,-1))+
 #                     annotate("text", 3.4, 175, label="*", size=24)+
 #                     annotate("text", 2.7, 200, label="*", size=24, alpha=.4)+
 #                     annotate("text", 2.7, 208, label="X", size=12, color="red",
 #                              alpha=.6)+
 #                     annotate("segment", x=1.9, xend=3.9, y=200, yend=200,
-#                              size=1.5, alpha=.4)        
-  
+#                              size=1.5, alpha=.4)
+
 
 # Display and save
 slat.plot
@@ -348,7 +351,7 @@ amp.plot
 fix.plot
 
 # 2nd sacs
-ggplot(subset(sub.lvl2, cond %in% coi2), aes(cond, samp, fill=cond))+pvals+
+ggplot(subset(sub.lvl2, cond %in% coi2), aes(cond, fixdur, fill=cond))+pvals+
   coord_cartesian(ylim=c(9.5, 11))
 ggplot(subset(sub.lvl2, cond %in% coi2), aes(cond, tnum, fill=cond))+
   geom_boxplot()
